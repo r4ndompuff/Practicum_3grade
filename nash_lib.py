@@ -1,5 +1,5 @@
 import numpy as np
-from fractions import fraction as frc
+from fractions import Fraction as frc
  
 def correct_output(a):
 	r, c = a.shape 
@@ -9,7 +9,11 @@ def correct_output(a):
 			print(a[i][j], end=" | ")
 		print()
 	
-		
+def spectre_output(s):
+	n = s.shape[0]
+	for i in range(n):
+		print(frc(s[i]).limit_denominator(1000),end=" | ")
+	print()		
 	
 
 
@@ -19,14 +23,11 @@ mtr_1 = np.array([[4, 0, 6, 2, 2, 1],
 				  [6, 6, 4, 4, 10, 3],
 				  [10, 4, 6, 4, 0, 9],
 				  [10, 7, 0, 7, 9, 8]])
-				  
-spectre_1 = np.array([0, 0.2281488, 1, 0.13371335])
+spectre_1 = np.array([0., 0.2281488, 1., 0.13371335])
 
-def spectre_output(s):
-	n = s.shape
-	
-	for i in range(n)
-		print(frc(s[i]), end=" | ")
-	
+
 
 correct_output(mtr_1)
+print()
+print(" | spectre_name1 || ", end="")
+spectre_output(spectre_1)
