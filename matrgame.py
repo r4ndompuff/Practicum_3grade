@@ -26,11 +26,13 @@ def is_saddle(mtr):
                     strategies[1,strat_point] = j
                     strat_point += 1
                     strategies = np.concatenate((strategies, np.zeros((2,1), dtype='int')), axis=1)
-    strategies = strategies[0:2,0:strat_point]
-    strat_a, strat_b = strategies.shape
-    print("Strategies of player A (we count coordinates from zero):")
-    for i in range(strat_b):
-        print(strategies[0,i],' ',strategies[1,i],' price: ',mtr[strategies[0,i],strategies[1,i]])
+        strategies = strategies[0:2,0:strat_point]
+        strat_a, strat_b = strategies.shape
+        print("Strategies of player A (we count coordinates from zero):")
+        for i in range(strat_b):
+            print(strategies[0,i],' ',strategies[1,i],' price: ',mtr[strategies[0,i],strategies[1,i]])
+    else:
+        print("No saddle point")
 # MAIN PART
 
 mtr_game_str = input("Enter your matrix game:\n")
