@@ -16,8 +16,8 @@ def check_extreme(matr, arr, x, sym_comb, m):
     sym_comb = sym_comb.replace('[', '')   # Убираем правую скобку знаков неравенств
     sym_comb = re.split("[ ,]", sym_comb)  # Из строки получаем вектор знаков неравенств
     for i in range(int(m)):                # m - кол-во неравенств
-        td_answer = float("{0:.7f}".format(KahanSum(matr[i] * x))) 
-        # Умножаем i-ю строку матрицы на решение, а дальше проверяем удовлетворяет ли 
+        td_answer = float("{0:.7f}".format(KahanSum(matr[i] * x)))
+        # Умножаем i-ю строку матрицы на решение, а дальше проверяем удовлетворяет ли
         # оно неравенству с правой частью. Также округляем float на 7-х знаках, чтобы питон не бузил
         if sym_comb[i] == '>':
             if td_answer <= arr[i]:
@@ -55,7 +55,7 @@ def extreme_points(A, b, sym_comb):
     matr_comb = combinations(A, n) # Соответствующие им комбинации левой части
     for i in range(int(permutation(n, m))): # Количество перестановок (C^m)_n
         if np.linalg.det(matr_comb[i]) != 0:  # Если определитель равен нулю -> решений нет
-            x = np.linalg.solve(np.array(matr_comb[i], dtype='float'), 
+            x = np.linalg.solve(np.array(matr_comb[i], dtype='float'),
                                 np.array(arr_comb[i], dtype='float'))  # Поиск решения матрицы nxn для иксов
             ans_comb = np.vstack([ans_comb, x])  # Записываем наше решение
     ans_comb = np.delete(ans_comb, 0, axis=0)    # Удаляем наш нулевой вектор (см. строка 56)
@@ -76,7 +76,7 @@ def nash_equilibrium(a1):
     m,n = (np.array(a1)).shape # Получаем количество неизвестных
 
 
-    # Составление знаков неравенств в зависимости от размерности input // [.] - для красоты 
+    # Составление знаков неравенств в зависимости от размерности input // [.] - для красоты
     c1 = '['+('<=,'*(n)+'>=,'*(m-n))[:-1]+']'    # Максимизация
     c2 = '['+('>=,'*(m))[:-1]+']'                # Минимизация
 
@@ -115,8 +115,59 @@ def KahanSum(input):                # Метод Кэхэна для аккур�
         y = input[i] - c            # Сначала с = 0
         t = sum + y                 # Alas, sum is big, y small, so low-order digits of y are lost.
         c = (t - sum) - y           # (t - sum) cancels the high-order part of y; subtracting y recovers negative (low part of y)
-        sum = t    
+        sum = t
     return sum
+
+def is_saddle(mtr):
+    global min
+    global max
+    rows, columns = mtr.shape
+    print("Rows:", rows)
+    print("Columns:", columns)
+    mins = mtr.min(axis = 1).transpose()
+    maxs = mtr.max(axis = 0)
+    min = mins.max()
+    max = maxs.min()
+    print("Mins to choose from: ",mins)
+    print("Maxs to choose from: ",maxs)
+    if min == max:
+        A_points = np.zeros(rows, dtype='int')
+        B_points = np.zeros(columns, dtype='int')
+        strategies = np.zeros((2,1), dtype='int')
+        strat_point = 0
+        for i in range(rows):
+            for j in range(columns):
+                if mtr[i,j] == mins[0,i] and mtr[i,j] == maxs[0,j] and mtr[i,j] == min:
+                    strategies[0,strat_point] = i
+                    strategies[1,strat_point] = j
+                    strat_point += 1
+                    strategies = np.concatenate((strategies, np.zeros((2,1), dtype='int')), axis=1)
+                    A_points[i] = 1
+                    B_points[j] = 1
+        strategies = strategies[0:2,0:strat_point]
+        strat_a, strat_b = strategies.shape
+        print("Strategies of players (we count coordinates from zero):")
+        for i in range(strat_b):
+            print('Player A:',strategies[0,i],strategies[1,i],' ','Player B:',strategies[0,i],strategies[1,i],' price:',mtr[strategies[0,i],strategies[1,i]])
+        print("Probability of each strategy of player A:", A_points/np.sum(A_points))
+        print("Probability of each strategy of player B:", B_points/np.sum(B_points))
+    else:
+        print("No saddle point")
+        nash_equilibrium(mtr)
+# MAIN PART
+
+mtr_game_str = input("Enter your matrix game:\n")
+mtr_game_str = mtr_game_str.replace("],[", "; ")
+mtr_game_str = mtr_game_str.replace(",", " ")
+mtr_game_str = mtr_game_str.replace("[[", "")
+mtr_game_str = mtr_game_str.replace("]]", "")
+print("Your input: ",mtr_game_str)
+mtr_game = np.matrix(mtr_game_str, dtype='float')
+print("Your matrix:\n",mtr_game)
+
+min = 0
+max = 0
+is_saddle(mtr_game)
 
 np.set_printoptions(precision=6, suppress=True, formatter={'all':lambda x: str(fractions.Fraction(x).limit_denominator())})  # Чтобы вывод был аккуратным
 # Manual tests
@@ -124,11 +175,5 @@ akr = [[3,6,1,4],[5,2,4,2],[1,4,3,5],[4,3,4,-1]] # Тест из интерне�
 # Тест из задания прака
 task_test_matrix = [[4,0,6,2,2,1],[3,8,4,10,4,4],[1,2,6,5,0,0],[6,6,4,4,10,3],[10,4,6,4,0,9],[10,7,0,7,9,8]]
 fake_test = [[3,1],[1,3]] # Тест Миши
-nash_equilibrium(task_test_matrix)
 
-
-
-
-
-
-
+#nash_equilibrium(task_test_matrix)

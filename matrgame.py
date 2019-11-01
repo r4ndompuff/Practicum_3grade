@@ -41,7 +41,7 @@ mtr_game_str = mtr_game_str.replace(",", " ")
 mtr_game_str = mtr_game_str.replace("[[", "")
 mtr_game_str = mtr_game_str.replace("]]", "")
 print("Your input: ",mtr_game_str)
-mtr_game = np.matrix(mtr_game_str)
+mtr_game = np.matrix(mtr_game_str, dtype='float')
 print("Your matrix:\n",mtr_game)
 
 min = 0
