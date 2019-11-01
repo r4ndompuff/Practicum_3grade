@@ -2,7 +2,7 @@ import numpy as np
 import itertools as it
 from math import factorial
 import re
-
+import fractions
 
 def permutation(m, n):     # Количество всевозможных перестановок
     return factorial(n) / (factorial(n - m) * factorial(m))
@@ -104,8 +104,8 @@ def nash_equilibrium(a1):
             min_solve = min_points[i]     # Запомнили минимальный вектор
 
     # Вывод
-    print("First player: ", np.true_divide(max_solve, max))
-    print("Second player: ", np.true_divide(min_solve, min))
+    print("First player: ", np.true_divide(min_solve,max))
+    print("Second player: ", np.true_divide(max_solve, max))
     print("Cost of the game", 1/max)
 
 def KahanSum(input):                # Метод Кэхэна для аккуратной суммы float
@@ -118,13 +118,13 @@ def KahanSum(input):                # Метод Кэхэна для аккур�
         sum = t    
     return sum
 
-np.set_printoptions(precision=6, suppress=True)  # Чтобы вывод был аккуратным
+np.set_printoptions(precision=6, suppress=True, formatter={'all':lambda x: str(fractions.Fraction(x).limit_denominator())})  # Чтобы вывод был аккуратным
 # Manual tests
 akr = [[3,6,1,4],[5,2,4,2],[1,4,3,5],[4,3,4,-1]] # Тест из интернета
 # Тест из задания прака
 task_test_matrix = [[4,0,6,2,2,1],[3,8,4,10,4,4],[1,2,6,5,0,0],[6,6,4,4,10,3],[10,4,6,4,0,9],[10,7,0,7,9,8]]
 fake_test = [[3,1],[1,3]] # Тест Миши
-nash_equilibrium(fake_test)
+nash_equilibrium(task_test_matrix)
 
 
 
