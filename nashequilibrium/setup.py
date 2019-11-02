@@ -11,10 +11,10 @@ setup(name='nashequilibrium',
       packages=find_packages(),
       keywords=['saddle point','matrix game'],
       install_requires=[
-            'numpy'
-            'itertools'
-            'math'
-            're'
-            'fractions'
+            'numpy',
+            'itertools',
+            'math',
+            're',
+            'fraction'
       ]
 )
