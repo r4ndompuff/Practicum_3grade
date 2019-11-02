@@ -129,26 +129,26 @@ def is_saddle(mtr):                 # Проверка седловой точк
     print("Mins to choose from: ",mins)
     print("Maxs to choose from: ",maxs)
     if min == max:
-        A_points = np.zeros(rows, dtype='int')  #векор с вероятностями стратегий игрока А
-        B_points = np.zeros(columns, dtype='int')  #векор с вероятностями стратегий игрока В
-        strategies = np.zeros((2,1), dtype='int')  #матрица с координатами стратегий
-        strat_point = 0  #количество седловых точек в игре
+        A_points = np.zeros(rows, dtype='int')     # Векор с вероятностями стратегий игрока А
+        B_points = np.zeros(columns, dtype='int')  # Векор с вероятностями стратегий игрока В
+        strategies = np.zeros((2,1), dtype='int')  # Матрица с координатами стратегий
+        strat_point = 0                            # Количество седловых точек в игре
         for i in range(rows):
             for j in range(columns):
                 if mtr[i,j] == mins[0,i] and mtr[i,j] == maxs[0,j] and mtr[i,j] == min:
-                    strategies[0,strat_point] = i  #координата строки с седловой точкой
-                    strategies[1,strat_point] = j  #кордината столбца с седловой точкой
+                    strategies[0,strat_point] = i  # Координата строки с седловой точкой
+                    strategies[1,strat_point] = j  # Кордината столбца с седловой точкой
                     strat_point += 1
                     strategies = np.concatenate((strategies, np.zeros((2,1), dtype='int')), axis=1)
-                    A_points[i] = 1  #если на позиции i есть седловая точка, то записываем 1
-                    B_points[j] = 1  #если на позиции j есть седловая точка, то записываем 1
-        strategies = strategies[0:2,0:strat_point]  #отсекаем лишний последний столбец
+                    A_points[i] = 1                 # Eсли на позиции i есть седловая точка, то записываем 1
+                    B_points[j] = 1                 # Eсли на позиции j есть седловая точка, то записываем 1
+        strategies = strategies[0:2,0:strat_point]  # Отсекаем лишний последний столбец
         strat_a, strat_b = strategies.shape
         print("Strategies of players (we count coordinates from zero):")
         for i in range(strat_b):
             print('Player A:',strategies[0,i],strategies[1,i],' ','Player B:',strategies[0,i],strategies[1,i],' price:',mtr[strategies[0,i],strategies[1,i]])
-        print("Probability of each strategy of player A:", A_points/np.sum(A_points))  #окончательный вектор с вероятностями для игрока А
-        print("Probability of each strategy of player B:", B_points/np.sum(B_points))  #окончательный вектор с вероятностями для игрока В
+        print("Probability of each strategy of player A:", A_points/np.sum(A_points))  # Окончательный вектор с вероятностями для игрока А
+        print("Probability of each strategy of player B:", B_points/np.sum(B_points))  # Окончательный вектор с вероятностями для игрока В
     else:
         print("No saddle point")
         nash_equilibrium(mtr)
