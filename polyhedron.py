@@ -154,17 +154,17 @@ def is_saddle(mtr):
     else:
         print("No saddle point")
         nash_equilibrium(mtr)
-# MAIN PART
 
+
+# MAIN PART
 np.set_printoptions(precision=6, suppress=True, formatter={'all':lambda x: str(fractions.Fraction(x).limit_denominator())})  # Чтобы вывод был аккуратным
 mtr_game_str = input("Enter your matrix game:\n")
 mtr_game_str = mtr_game_str.replace("],[", "; ")
 mtr_game_str = mtr_game_str.replace(",", " ")
 mtr_game_str = mtr_game_str.replace("[[", "")
 mtr_game_str = mtr_game_str.replace("]]", "")
-mtr_game = np.array(np.matrix(mtr_game_str))
+mtr_game = np.matrix(mtr_game_str)
 is_saddle(mtr_game)
-
 
 
 # Manual tests
