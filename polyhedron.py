@@ -89,15 +89,15 @@ def extreme_points(A, b, sym_comb):
 
 def fixed_solution(mtr, mins, maxs, price):
     rows, columns = mtr.shape
-    A_points = np.zeros(rows, dtype='int')     # Векор с вероятностями стратегий игрока А
-    B_points = np.zeros(columns, dtype='int')  # Векор с вероятностями стратегий игрока В
-    strategies = np.zeros((2,1), dtype='int')  # Матрица с координатами стратегий
-    strat_point = 0                            # Количество седловых точек в игре
+    A_points = np.zeros(rows, dtype='int')      # Векор с вероятностями стратегий игрока А
+    B_points = np.zeros(columns, dtype='int')   # Векор с вероятностями стратегий игрока В
+    strategies = np.zeros((2,1), dtype='int')   # Матрица с координатами стратегий
+    strat_point = 0                             # Количество седловых точек в игре
     for i in range(rows):
         for j in range(columns):
-            if mtr[i,j] == mins[0,i] and mtr[i,j] == maxs[0,j] and mtr[i,j] == price:
-                strategies[0,strat_point] = i  # Координата строки с седловой точкой
-                strategies[1,strat_point] = j  # Кордината столбца с седловой точкой
+            if mtr[i,j] == mins[i] and mtr[i,j] == maxs[j] and mtr[i,j] == price:
+                strategies[0,strat_point] = i   # Координата строки с седловой точкой
+                strategies[1,strat_point] = j   # Кордината столбца с седловой точкой
                 strat_point += 1
                 strategies = np.concatenate((strategies, np.zeros((2,1), dtype='int')), axis=1)
                 A_points[i] = 1                 # Eсли на позиции i есть седловая точка, то записываем 1
@@ -217,5 +217,5 @@ fake_test = np.array([[3,1],
 saddle_test = np.array([[1, 2],
                         [3, 4]])
 
-nash_equilibrium(np.matrix(task_test_matrix))
-nash_equilibrium(np.matrix(saddle_test))
+nash_equilibrium(task_test_matrix)
+nash_equilibrium(saddle_test)
