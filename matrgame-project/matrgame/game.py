@@ -3,25 +3,41 @@ import itertools as it
 from math import factorial
 import re
 from fractions import Fraction as frc
+import matplotlib.pyplot as plt
 
 def correct_output(a, s1, s2, price):
     r, c = a.shape
-    print()
+    ldconst = 1000
+    l_s = np.ones(max(s1.size, s2.size), dtype = 'int')
+    l_a = np.ones(c, dtype = 'int')
+    for j in range(c):
+        for i in range(r):
+            if len(str(a[i][j])) > l_a[j]:
+                l_a[j] = len(str(a[i][j]))
     for i in range(r):
         print(end=" | ")
         for j in range(c):
-            print(a[i][j], end=" | ")
+            print(str(a[i][j]).rjust(l_a[j]), end=" | ")
         print()
-
-    print ("\n Price оf the game: ", frc(price).limit_denominator(1000))
-
+    print ("\n Price оf the game: ", frc(price).limit_denominator(ldconst))
     print("\n | p || ", end="")
     for i in range(0, r):
-        print(frc(s1[i]).limit_denominator(1000),end=" | ")
+        print(frc(s1[i]).limit_denominator(ldconst),end=" | ")
     print("\n | q || ", end="")
     for i in range(0, c):
-        print(frc(s2[i]).limit_denominator(1000),end=" | ")
+        print(frc(s2[i]).limit_denominator(ldconst),end=" | ")
     print("\n\n")
+
+#def spectre_vizual(s):
+#    v = np.arange(1, np.size(s)+1)
+#    plt.plot(v, s, 'ro')
+#    plt.axis([0, np.size(s)+1, 0, 1])
+#    for i in v:
+#        plt.axvline(x = i, ymax = s[i-1])
+#    plt.ylabel("Probablity of strategy usage")
+#    plt.xlabel("Number of strategy")
+#    plt.show()
+
 
 def permutation(m, n):     # Количество всевозможных перестановок
     return factorial(n) / (factorial(n - m) * factorial(m))
@@ -129,9 +145,11 @@ def mixed_solution(a1):
     # Составление знаков неравенств в зависимости от размерности input // [.] - для красоты
     c1 = '['+('<=,'*(n)+'>=,'*(m-n))[:-1]+']'    # Максимизация
     c2 = '['+('>=,'*(m))[:-1]+']'                # Минимизация
-
+    print(a1,n)
     # Транспонируем
-    a2 = np.concatenate((np.transpose(np.array(a1)[:-n, :]), np.eye(n, dtype = float)), axis=0)
+    atrans = np.transpose(np.array(a1)[:-n, :])      # Случай общий
+    m,n2 = atrans.shape                              # Случай не квадратной матрицы
+    a2 = np.concatenate((atrans, np.eye(n2, dtype = float)), axis=0)
     max_points = extreme_points(a1, b, c1) # Массив, где надо найти максимум
     min_points = extreme_points(a2, b, c2) # Массив, где надо найти минимум
     max_size = np.size(max_points,0) # Размер массива с максимумом (только строки)
@@ -175,24 +193,24 @@ def KahanSum(input):
 ###### Основная функция ######
 
 def nash_equilibrium(mtr):
-    rows, columns = mtr.shape       	# Получаем строки/столбцы матрицы
-    #print("Rows:", rows)
-    #print("Columns:", columns)
+    mtr = np.array(mtr)
+    rows, columns = mtr.shape       	   # Получаем строки/столбцы матрицы
     mins = mtr.min(axis = 1).transpose()   # Получаем вектор с минимумами
     maxs = mtr.max(axis = 0)               # Находим вектор со столбцами
     min = mins.max()                       # Получаем максимум из минимумов
     max = maxs.min()                       # Получаем минимум из максимумов
-    #print("Mins to choose from: ",mins)
-    #print("Maxs to choose from: ",maxs)
+
     if min == max:
         price = min
         print("Saddle point : ", price)
-        p, q, v = fixed_solution(mtr, mins, maxs, price)
+        p, q, price = fixed_solution(mtr, mins, maxs, price)
     else:
         print("No saddle point")
-        p, q, v = mixed_solution(mtr)
-    correct_output(mtr, p, q, v)
-    return p, q, v
+        p, q, price = mixed_solution(mtr)
+    correct_output(mtr, p, q, price)
+    #spectre_vizual(p)
+    #spectre_vizual(q)
+    return p, q, frc(price).limit_denominator(1000)
 
 # MAIN PART
 np.set_printoptions(precision=6,
@@ -208,26 +226,18 @@ np.set_printoptions(precision=6,
 #mtr_game = np.matrix(mtr_game_str)
 
 # Manual tests
-akr = np.array([[3,6,1,4],
-                [5,2,4,2],
-	            [1,4,3,5],
-	            [4,3,4,-1]]) # Тест из интернета
+akr = [[3,6,1,4],[5,2,4,2],[1,4,3,5],[4,3,4,-1]] # Тест из интернета
 
-task_test_matrix = np.array([[4,0,6,2,2,1],
-                             [3,8,4,10,4,4],
-							 [1,2,6,5,0,0],
-							 [6,6,4,4,10,3],
-							 [10,4,6,4,0,9],
-							 [10,7,0,7,9,8]]) # Тест из задания прака
+task_test_matrix = [[4,0,6,2,2,1],[3,8,4,10,4,4],[1,2,6,5,0,0],[6,6,4,4,10,3],[10,4,6,4,0,9],[10,7,0,7,9,8]] # Тест из задания прака
 
-fake_test = np.array([[3,1],
-                      [1,3]]) # Тест Миши
+fake_test = [[3, 1],[1, 3]]    # Тест Миши
 
-saddle_test = np.array([[1, 2],
-                        [3, 4]])
+saddle_test = [[1, 2],[3, 4]]  # Седловая точка 1
 
-saddle2_test = np.array([[2, 2],
-                         [2, 2]])
+saddle2_test = [[2, 2],[2, 2]] # Седловая точка 2
 
-nash_equilibrium(task_test_matrix)
-nash_equilibrium(saddle2_test)
+not_square_saddle = [[1,2,3],[1,1,1]]
+
+not_square_not_saddle = [[-1,-2,3],[2,4,1]]
+
+#nash_equilibrium(fake_test)
