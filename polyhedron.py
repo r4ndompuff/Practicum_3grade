@@ -118,16 +118,14 @@ def KahanSum(input):                # Метод Кэхэна для аккур�
         sum = t
     return sum
 
-def is_saddle(mtr):
-    min = 0
-    max = 0
-    rows, columns = mtr.shape
-    print("Rows:", rows)
+def is_saddle(mtr):                 # Проверка седловой точки
+    rows, columns = mtr.shape       # Получаем строки/столбцы матрицы
+    print("Rows:", rows)            
     print("Columns:", columns)
-    mins = mtr.min(axis = 1).transpose()
-    maxs = mtr.max(axis = 0)
-    min = mins.max()
-    max = maxs.min()
+    mins = mtr.min(axis = 1).transpose()   # Получаем вектор с минимумами
+    maxs = mtr.max(axis = 0)               # Находим вектор со столбцами
+    min = mins.max()                       # Получаем максимум из минимумов
+    max = maxs.min()                       # Получаем минимум из максимумов
     print("Mins to choose from: ",mins)
     print("Maxs to choose from: ",maxs)
     if min == max:
@@ -158,18 +156,20 @@ def is_saddle(mtr):
 
 # MAIN PART
 np.set_printoptions(precision=6, suppress=True, formatter={'all':lambda x: str(fractions.Fraction(x).limit_denominator())})  # Чтобы вывод был аккуратным
-mtr_game_str = input("Enter your matrix game:\n")
+mtr_game_str = input("Enter your matrix game:\n")   # Получили строку
+# Распарсиваем из строки в матричный вид
 mtr_game_str = mtr_game_str.replace("],[", "; ")
 mtr_game_str = mtr_game_str.replace(",", " ")
 mtr_game_str = mtr_game_str.replace("[[", "")
 mtr_game_str = mtr_game_str.replace("]]", "")
 mtr_game = np.matrix(mtr_game_str)
+# Вызываем проверку седловой точки
 is_saddle(mtr_game)
 
 
 # Manual tests
-akr = [[3,6,1,4],[5,2,4,2],[1,4,3,5],[4,3,4,-1]] # Тест из интернета
+#akr = [[3,6,1,4],[5,2,4,2],[1,4,3,5],[4,3,4,-1]] # Тест из интернета
 # Тест из задания прака
-task_test_matrix = [[4,0,6,2,2,1],[3,8,4,10,4,4],[1,2,6,5,0,0],[6,6,4,4,10,3],[10,4,6,4,0,9],[10,7,0,7,9,8]]
-fake_test = [[3,1],[1,3]] # Тест Миши
+#task_test_matrix = [[4,0,6,2,2,1],[3,8,4,10,4,4],[1,2,6,5,0,0],[6,6,4,4,10,3],[10,4,6,4,0,9],[10,7,0,7,9,8]]
+#fake_test = [[3,1],[1,3]] # Тест Миши
 #nash_equilibrium(task_test_matrix)
