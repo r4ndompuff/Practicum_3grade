@@ -2,8 +2,29 @@ import numpy as np
 import itertools as it
 from math import factorial
 import re
-import fractions
+from fractions import Fraction as frc
 
+def correct_output(a, s1, s2, price):
+	r, c = a.shape 
+	for i in range(r):
+		print(end=" | ")
+		for j in range(c):
+			print(a[i][j], end=" | ")
+		print()
+	
+	print ("Price оf the game: ", price)
+	
+	print("\n | p || ", end="")
+	for i in range(0, r):
+		print(frc(s1[i]).limit_denominator(1000),end=" | ")
+	print("\n | q || ", end="")
+	for i in range(0, c):
+		print(frc(s2[i]).limit_denominator(1000),end=" | ")
+		
+	
+	
+	
+	
 def permutation(m, n):     # Количество всевозможных перестановок
     return factorial(n) / (factorial(n - m) * factorial(m))
 
@@ -67,8 +88,35 @@ def extreme_points(A, b, sym_comb):
             ans_comb = np.delete(ans_comb, j, axis=0)     # Если нет, то удаляем решение
     # Output
     return ans_comb
-
-def nash_equilibrium(a1):
+	
+###### Функция для решения игры с седловыми точками ######
+	
+def fixed_solution(mtr, mins, maxs, price):
+    rows, columns = mtr.shape
+    A_points = np.zeros(rows, dtype='int')     # Векор с вероятностями стратегий игрока А
+    B_points = np.zeros(columns, dtype='int')  # Векор с вероятностями стратегий игрока В
+    strategies = np.zeros((2,1), dtype='int')  # Матрица с координатами стратегий
+    strat_point = 0                            # Количество седловых точек в игре
+    for i in range(rows):
+        for j in range(columns):
+            if mtr[i,j] == mins[0,i] and mtr[i,j] == maxs[0,j] and mtr[i,j] == price:
+                strategies[0,strat_point] = i  # Координата строки с седловой точкой
+                strategies[1,strat_point] = j  # Кордината столбца с седловой точкой
+                strat_point += 1
+                strategies = np.concatenate((strategies, np.zeros((2,1), dtype='int')), axis=1)
+                A_points[i] = 1                 # Eсли на позиции i есть седловая точка, то записываем 1
+                B_points[j] = 1                 # Eсли на позиции j есть седловая точка, то записываем 1
+    strategies = strategies[0:2,0:strat_point]  # Отсекаем лишний последний столбец
+    strat_a, strat_b = strategies.shape
+    print("Strategies of players (we count coordinates from zero):")
+    for i in range(strat_b):
+        print('Player A:',strategies[0,i],strategies[1,i],' ','Player B:',strategies[0,i],strategies[1,i],' price:',mtr[strategies[0,i],strategies[1,i]])
+    print("Probability of each strategy of player A:", A_points/np.sum(A_points))  # Окончательный вектор с вероятностями для игрока А
+    print("Probability of each strategy of player B:", B_points/np.sum(B_points))  # Окончательный вектор с вероятностями для игрока В	
+	
+###### Функция для решения игры в смешанных стратегиях ######
+	
+def mixed_solution(a1):
     # Добавляем к игровой матрице условия неотрицательности каждой неизвестной
     a1 = np.concatenate((a1,np.eye(np.size(np.array(a1, dtype = float),1))), axis = 0)
     # Составляем правую часть для матричной игры
@@ -108,7 +156,9 @@ def nash_equilibrium(a1):
     print("Second player: ", np.true_divide(max_solve, max))
     print("Cost of the game", 1/max)
 
-def KahanSum(input):                # Метод Кэхэна для аккуратной суммы float
+###### Метод Кэхэна для аккуратной суммы float ######
+	 
+def KahanSum(input):               
     sum = 0.0
     c = 0.0
     for i in range(len(input)):     # Перебор по каждой цифре числа
@@ -118,58 +168,58 @@ def KahanSum(input):                # Метод Кэхэна для аккур�
         sum = t
     return sum
 
-def is_saddle(mtr):                 # Проверка седловой точки
-    rows, columns = mtr.shape       # Получаем строки/столбцы матрицы
-    print("Rows:", rows)
-    print("Columns:", columns)
+###### Основная функция ######
+	
+def nash_equilibrium(mtr):                
+    rows, columns = mtr.shape       	# Получаем строки/столбцы матрицы
+    #print("Rows:", rows)
+    #print("Columns:", columns)
     mins = mtr.min(axis = 1).transpose()   # Получаем вектор с минимумами
     maxs = mtr.max(axis = 0)               # Находим вектор со столбцами
     min = mins.max()                       # Получаем максимум из минимумов
     max = maxs.min()                       # Получаем минимум из максимумов
-    print("Mins to choose from: ",mins)
-    print("Maxs to choose from: ",maxs)
+    #print("Mins to choose from: ",mins)
+    #print("Maxs to choose from: ",maxs)
     if min == max:
-        A_points = np.zeros(rows, dtype='int')     # Векор с вероятностями стратегий игрока А
-        B_points = np.zeros(columns, dtype='int')  # Векор с вероятностями стратегий игрока В
-        strategies = np.zeros((2,1), dtype='int')  # Матрица с координатами стратегий
-        strat_point = 0                            # Количество седловых точек в игре
-        for i in range(rows):
-            for j in range(columns):
-                if mtr[i,j] == mins[0,i] and mtr[i,j] == maxs[0,j] and mtr[i,j] == min:
-                    strategies[0,strat_point] = i  # Координата строки с седловой точкой
-                    strategies[1,strat_point] = j  # Кордината столбца с седловой точкой
-                    strat_point += 1
-                    strategies = np.concatenate((strategies, np.zeros((2,1), dtype='int')), axis=1)
-                    A_points[i] = 1                 # Eсли на позиции i есть седловая точка, то записываем 1
-                    B_points[j] = 1                 # Eсли на позиции j есть седловая точка, то записываем 1
-        strategies = strategies[0:2,0:strat_point]  # Отсекаем лишний последний столбец
-        strat_a, strat_b = strategies.shape
-        print("Strategies of players (we count coordinates from zero):")
-        for i in range(strat_b):
-            print('Player A:',strategies[0,i],strategies[1,i],' ','Player B:',strategies[0,i],strategies[1,i],' price:',mtr[strategies[0,i],strategies[1,i]])
-        print("Probability of each strategy of player A:", A_points/np.sum(A_points))  # Окончательный вектор с вероятностями для игрока А
-        print("Probability of each strategy of player B:", B_points/np.sum(B_points))  # Окончательный вектор с вероятностями для игрока В
+        price = min
+        print("Saddle point : ", price)
+        fixed_solution(mtr, mins, maxs, price)
     else:
         print("No saddle point")
-        nash_equilibrium(mtr)
+        mixed_solution(mtr)
 
 
 # MAIN PART
-np.set_printoptions(precision=6, suppress=True, formatter={'all':lambda x: str(fractions.Fraction(x).limit_denominator())})  # Чтобы вывод был аккуратным
-mtr_game_str = input("Enter your matrix game:\n")   # Получили строку
+np.set_printoptions(precision=6, 
+                    suppress=True, 
+					formatter={'all':lambda x: str(frc(x).limit_denominator())})  # Чтобы вывод был аккуратным
+					
+#mtr_game_str = input("Enter your matrix game:\n")   # Получили строку
 # Распарсиваем из строки в матричный вид
-mtr_game_str = mtr_game_str.replace("],[", "; ")
-mtr_game_str = mtr_game_str.replace(",", " ")
-mtr_game_str = mtr_game_str.replace("[[", "")
-mtr_game_str = mtr_game_str.replace("]]", "")
-mtr_game = np.matrix(mtr_game_str)
-# Вызываем проверку седловой точки
-is_saddle(mtr_game)
-
+#mtr_game_str = mtr_game_str.replace("],[", "; ")
+#mtr_game_str = mtr_game_str.replace(",", " ")
+#mtr_game_str = mtr_game_str.replace("[[", "")
+#mtr_game_str = mtr_game_str.replace("]]", "")
+#mtr_game = np.matrix(mtr_game_str)
 
 # Manual tests
-#akr = [[3,6,1,4],[5,2,4,2],[1,4,3,5],[4,3,4,-1]] # Тест из интернета
-# Тест из задания прака
-#task_test_matrix = [[4,0,6,2,2,1],[3,8,4,10,4,4],[1,2,6,5,0,0],[6,6,4,4,10,3],[10,4,6,4,0,9],[10,7,0,7,9,8]]
-#fake_test = [[3,1],[1,3]] # Тест Миши
-#nash_equilibrium(task_test_matrix)
+akr = np.array([[3,6,1,4],
+                [5,2,4,2],
+	            [1,4,3,5],
+	            [4,3,4,-1]]) # Тест из интернета
+
+task_test_matrix = np.array([[4,0,6,2,2,1], 
+                             [3,8,4,10,4,4],
+							 [1,2,6,5,0,0],
+							 [6,6,4,4,10,3],
+							 [10,4,6,4,0,9],
+							 [10,7,0,7,9,8]]) # Тест из задания прака
+
+fake_test = np.array([[3,1],
+                      [1,3]]) # Тест Миши
+			 
+saddle_test = np.array([[1, 2],
+                        [3, 4]])
+			   
+nash_equilibrium(task_test_matrix)
+nash_equilibrium(saddle_test)
