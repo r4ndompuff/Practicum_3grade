@@ -208,8 +208,8 @@ def nash_equilibrium(mtr):
         print("No saddle point")
         p, q, price = mixed_solution(mtr)
     correct_output(mtr, p, q, price)                 # Красивый вывод
-    #spectre_vizual(p)                                # Визуализация p
-    #spectre_vizual(q)                                # Визуализация q
+    spectre_vizual(p)                                # Визуализация p
+    spectre_vizual(q)                                # Визуализация q
     return p, q, frc(price).limit_denominator(1000)
 
 # Настройки, чтобы вывод был аккуратным
