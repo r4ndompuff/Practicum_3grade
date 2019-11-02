@@ -5,21 +5,23 @@ import re
 from fractions import Fraction as frc
 
 def correct_output(a, s1, s2, price):
-	r, c = a.shape
-	for i in range(r):
-		print(end=" | ")
-		for j in range(c):
-			print(a[i][j], end=" | ")
-		print()
+    r, c = a.shape
+    print()
+    for i in range(r):
+        print(end=" | ")
+        for j in range(c):
+            print(a[i][j], end=" | ")
+        print()
 
-	print ("Price оf the game: ", price)
+    print ("\n Price оf the game: ", price)
 
-	print("\n | p || ", end="")
-	for i in range(0, r):
-		print(frc(s1[i]).limit_denominator(1000),end=" | ")
-	print("\n | q || ", end="")
-	for i in range(0, c):
-		print(frc(s2[i]).limit_denominator(1000),end=" | ")
+    print("\n | p || ", end="")
+    for i in range(0, r):
+        print(frc(s1[i]).limit_denominator(1000),end=" | ")
+    print("\n | q || ", end="")
+    for i in range(0, c):
+        print(frc(s2[i]).limit_denominator(1000),end=" | ")
+    print("\n\n")
 
 def permutation(m, n):     # Количество всевозможных перестановок
     return factorial(n) / (factorial(n - m) * factorial(m))
@@ -104,15 +106,19 @@ def fixed_solution(mtr, mins, maxs, price):
                 B_points[j] = 1                 # Eсли на позиции j есть седловая точка, то записываем 1
     strategies = strategies[0:2,0:strat_point]  # Отсекаем лишний последний столбец
     strat_a, strat_b = strategies.shape
-    print("Strategies of players (we count coordinates from zero):")
-    for i in range(strat_b):
-        print('Player A:',strategies[0,i],strategies[1,i],' ','Player B:',strategies[0,i],strategies[1,i],' price:',mtr[strategies[0,i],strategies[1,i]])
-    print("Probability of each strategy of player A:", A_points/np.sum(A_points))  # Окончательный вектор с вероятностями для игрока А
-    print("Probability of each strategy of player B:", B_points/np.sum(B_points))  # Окончательный вектор с вероятностями для игрока В
+    
+    return A_points/np.sum(A_points), B_points/np.sum(B_points), mtr[strategies[0,0],strategies[1,0]]
+    
+    #print("Strategies of players (we count coordinates from zero):")
+    #for i in range(strat_b):
+        #print('Player A:',strategies[0,i],strategies[1,i],' ','Player B:',strategies[0,i],strategies[1,i],' price:',mtr[strategies[0,i],strategies[1,i]])
+    #print("Probability of each strategy of player A:", A_points/np.sum(A_points))  # Окончательный вектор с вероятностями для игрока А
+    #print("Probability of each strategy of player B:", B_points/np.sum(B_points))  # Окончательный вектор с вероятностями для игрока В
 
 ###### Функция для решения игры в смешанных стратегиях ######
 
 def mixed_solution(a1):
+    a = a1
     # Добавляем к игровой матрице условия неотрицательности каждой неизвестной
     a1 = np.concatenate((a1,np.eye(np.size(np.array(a1, dtype = float),1))), axis = 0)
     # Составляем правую часть для матричной игры
@@ -148,9 +154,11 @@ def mixed_solution(a1):
             min_solve = min_points[i]     # Запомнили минимальный вектор
 
     # Вывод
-    print("First player: ", np.true_divide(min_solve,max))
-    print("Second player: ", np.true_divide(max_solve, max))
-    print("Cost of the game", 1/max)
+    return np.true_divide(min_solve,max), np.true_divide(max_solve,max), 1/max
+ 
+    #print("First player: ", np.true_divide(min_solve,max))
+    #print("Second player: ", np.true_divide(max_solve, max))
+    #print("Cost of the game", 1/max)
 
 ###### Метод Кэхэна для аккуратной суммы float ######
 
@@ -179,11 +187,12 @@ def nash_equilibrium(mtr):
     if min == max:
         price = min
         print("Saddle point : ", price)
-        fixed_solution(mtr, mins, maxs, price)
+        p, q, v = fixed_solution(mtr, mins, maxs, price)
     else:
         print("No saddle point")
-        mixed_solution(mtr)
-
+        p, q, v = mixed_solution(mtr)
+    correct_output(mtr, p, q, v)
+    return p, q, v
 
 # MAIN PART
 np.set_printoptions(precision=6,
