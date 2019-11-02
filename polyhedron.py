@@ -119,8 +119,8 @@ def KahanSum(input):                # Метод Кэхэна для аккур�
     return sum
 
 def is_saddle(mtr):
-    global min
-    global max
+    min = 0
+    max = 0
     rows, columns = mtr.shape
     print("Rows:", rows)
     print("Columns:", columns)
@@ -156,24 +156,20 @@ def is_saddle(mtr):
         nash_equilibrium(mtr)
 # MAIN PART
 
+np.set_printoptions(precision=6, suppress=True, formatter={'all':lambda x: str(fractions.Fraction(x).limit_denominator())})  # Чтобы вывод был аккуратным
 mtr_game_str = input("Enter your matrix game:\n")
 mtr_game_str = mtr_game_str.replace("],[", "; ")
 mtr_game_str = mtr_game_str.replace(",", " ")
 mtr_game_str = mtr_game_str.replace("[[", "")
 mtr_game_str = mtr_game_str.replace("]]", "")
-print("Your input: ",mtr_game_str)
-mtr_game = np.matrix(mtr_game_str, dtype='float')
-print("Your matrix:\n",mtr_game)
-
-min = 0
-max = 0
+mtr_game = np.array(np.matrix(mtr_game_str))
 is_saddle(mtr_game)
 
-np.set_printoptions(precision=6, suppress=True, formatter={'all':lambda x: str(fractions.Fraction(x).limit_denominator())})  # Чтобы вывод был аккуратным
+
+
 # Manual tests
 akr = [[3,6,1,4],[5,2,4,2],[1,4,3,5],[4,3,4,-1]] # Тест из интернета
 # Тест из задания прака
 task_test_matrix = [[4,0,6,2,2,1],[3,8,4,10,4,4],[1,2,6,5,0,0],[6,6,4,4,10,3],[10,4,6,4,0,9],[10,7,0,7,9,8]]
 fake_test = [[3,1],[1,3]] # Тест Миши
-
 #nash_equilibrium(task_test_matrix)
