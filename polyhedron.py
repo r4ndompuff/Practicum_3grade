@@ -3,6 +3,7 @@ import itertools as it
 from math import factorial
 import re
 from fractions import Fraction as frc
+import matplotlib.pyplot as plt
 
 def correct_output(a, s1, s2, price):
     r, c = a.shape
@@ -30,6 +31,17 @@ def correct_output(a, s1, s2, price):
     for i in range(0, c):
         print(frc(s2[i]).limit_denominator(ldconst),end=" | ")
     print("\n\n")
+
+def spectre_vizual(s):
+    v = np.arange(1, np.size(s)+1)
+    plt.plot(v, s, 'ro')
+    plt.axis([0, np.size(s)+1, 0, 1])
+    for i in v:
+        plt.axvline(x = i, ymax = s[i-1])
+    plt.ylabel("Probablity of strategy usage")
+    plt.xlabel("Number of strategy")    
+    plt.show()
+
 
 def permutation(m, n):     # Количество всевозможных перестановок
     return factorial(n) / (factorial(n - m) * factorial(m))
@@ -197,6 +209,8 @@ def nash_equilibrium(mtr):
         print("No saddle point")
         p, q, v = mixed_solution(mtr)
     correct_output(mtr, p, q, v)
+    spectre_vizual(p)
+    spectre_vizual(q)	
     return p, q, v
 
 # MAIN PART
