@@ -5,26 +5,22 @@ import re
 from fractions import Fraction as frc
 
 def correct_output(a, s1, s2, price):
-	r, c = a.shape 
+	r, c = a.shape
 	for i in range(r):
 		print(end=" | ")
 		for j in range(c):
 			print(a[i][j], end=" | ")
 		print()
-	
+
 	print ("Price оf the game: ", price)
-	
+
 	print("\n | p || ", end="")
 	for i in range(0, r):
 		print(frc(s1[i]).limit_denominator(1000),end=" | ")
 	print("\n | q || ", end="")
 	for i in range(0, c):
 		print(frc(s2[i]).limit_denominator(1000),end=" | ")
-		
-	
-	
-	
-	
+
 def permutation(m, n):     # Количество всевозможных перестановок
     return factorial(n) / (factorial(n - m) * factorial(m))
 
@@ -88,9 +84,9 @@ def extreme_points(A, b, sym_comb):
             ans_comb = np.delete(ans_comb, j, axis=0)     # Если нет, то удаляем решение
     # Output
     return ans_comb
-	
+
 ###### Функция для решения игры с седловыми точками ######
-	
+
 def fixed_solution(mtr, mins, maxs, price):
     rows, columns = mtr.shape
     A_points = np.zeros(rows, dtype='int')     # Векор с вероятностями стратегий игрока А
@@ -112,10 +108,10 @@ def fixed_solution(mtr, mins, maxs, price):
     for i in range(strat_b):
         print('Player A:',strategies[0,i],strategies[1,i],' ','Player B:',strategies[0,i],strategies[1,i],' price:',mtr[strategies[0,i],strategies[1,i]])
     print("Probability of each strategy of player A:", A_points/np.sum(A_points))  # Окончательный вектор с вероятностями для игрока А
-    print("Probability of each strategy of player B:", B_points/np.sum(B_points))  # Окончательный вектор с вероятностями для игрока В	
-	
+    print("Probability of each strategy of player B:", B_points/np.sum(B_points))  # Окончательный вектор с вероятностями для игрока В
+
 ###### Функция для решения игры в смешанных стратегиях ######
-	
+
 def mixed_solution(a1):
     # Добавляем к игровой матрице условия неотрицательности каждой неизвестной
     a1 = np.concatenate((a1,np.eye(np.size(np.array(a1, dtype = float),1))), axis = 0)
@@ -157,8 +153,8 @@ def mixed_solution(a1):
     print("Cost of the game", 1/max)
 
 ###### Метод Кэхэна для аккуратной суммы float ######
-	 
-def KahanSum(input):               
+
+def KahanSum(input):
     sum = 0.0
     c = 0.0
     for i in range(len(input)):     # Перебор по каждой цифре числа
@@ -169,8 +165,8 @@ def KahanSum(input):
     return sum
 
 ###### Основная функция ######
-	
-def nash_equilibrium(mtr):                
+
+def nash_equilibrium(mtr):
     rows, columns = mtr.shape       	# Получаем строки/столбцы матрицы
     #print("Rows:", rows)
     #print("Columns:", columns)
@@ -190,10 +186,10 @@ def nash_equilibrium(mtr):
 
 
 # MAIN PART
-np.set_printoptions(precision=6, 
-                    suppress=True, 
+np.set_printoptions(precision=6,
+                    suppress=True,
 					formatter={'all':lambda x: str(frc(x).limit_denominator())})  # Чтобы вывод был аккуратным
-					
+
 #mtr_game_str = input("Enter your matrix game:\n")   # Получили строку
 # Распарсиваем из строки в матричный вид
 #mtr_game_str = mtr_game_str.replace("],[", "; ")
@@ -208,7 +204,7 @@ akr = np.array([[3,6,1,4],
 	            [1,4,3,5],
 	            [4,3,4,-1]]) # Тест из интернета
 
-task_test_matrix = np.array([[4,0,6,2,2,1], 
+task_test_matrix = np.array([[4,0,6,2,2,1],
                              [3,8,4,10,4,4],
 							 [1,2,6,5,0,0],
 							 [6,6,4,4,10,3],
@@ -217,9 +213,9 @@ task_test_matrix = np.array([[4,0,6,2,2,1],
 
 fake_test = np.array([[3,1],
                       [1,3]]) # Тест Миши
-			 
+
 saddle_test = np.array([[1, 2],
                         [3, 4]])
-			   
-nash_equilibrium(task_test_matrix)
-nash_equilibrium(saddle_test)
+
+nash_equilibrium(np.matrix(task_test_matrix))
+nash_equilibrium(np.matrix(saddle_test))
