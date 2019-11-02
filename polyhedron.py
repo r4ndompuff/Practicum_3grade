@@ -13,7 +13,7 @@ def correct_output(a, s1, s2, price):
             print(a[i][j], end=" | ")
         print()
 
-    print ("\n Price оf the game: ", price)
+    print ("\n Price оf the game: ", frc(price).limit_denominator(1000))
 
     print("\n | p || ", end="")
     for i in range(0, r):
@@ -225,6 +225,9 @@ fake_test = np.array([[3,1],
 
 saddle_test = np.array([[1, 2],
                         [3, 4]])
+						
+saddle2_test = np.array([[2, 2],
+                         [2, 2]])
 
 nash_equilibrium(task_test_matrix)
-nash_equilibrium(saddle_test)
+nash_equilibrium(saddle2_test)
