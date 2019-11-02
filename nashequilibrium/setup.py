@@ -9,7 +9,7 @@ setup(name='nashequilibrium',
       author_email='nick_denisov_777@mail.ru',
       license='MSU',
       packages=find_packages(),
-      keywords=['saddle point','matrix game']
+      keywords=['saddle point','matrix game'],
       install_requires=[
             'numpy'
             'itertools'
