@@ -8,8 +8,32 @@ import matplotlib.pyplot as plt
 def correct_output(a, s1, s2, price):
     r, c = a.shape
     ldconst = 1000
-    l_s = np.ones(max(s1.size, s2.size), dtype = 'int')
+    ssize = max(s1.size, s2.size)
+    l_s = np.ones(ssize, dtype = 'int')
     l_a = np.ones(c, dtype = 'int')
+
+    if s1.size < s2.size:
+        for i in range(s1.size):
+            if len(str(frc(s1[i]).limit_denominator(ldconst))) > len(str(frc(s2[i]).limit_denominator(ldconst))):
+                l_s[i] = len(str(frc(s1[i]).limit_denominator(ldconst)))
+            else: 
+                l_s[i] = len(str(frc(s2[i]).limit_denominator(ldconst)))
+        for i in range(s1.size, s2.size):
+            l_s[i] = len(str(frc(s2[i]).limit_denominator(ldconst)))
+    elif s1.size > s2.size:
+        for i in range(s1.size):
+            if len(str(frc(s1[i]).limit_denominator(ldconst))) > len(str(frc(s2[i]).limit_denominator(ldconst))):
+                l_s[i] = len(str(frc(s1[i]).limit_denominator(ldconst)))
+            else: 
+                l_s[i] = len(str(frc(s2[i]).limit_denominator(ldconst)))
+        for i in range(s2.size, s1.size):
+            l_s[i] = len(str(frc(s2[i]).limit_denominator(ldconst)))		    
+    else:
+        for i in range(ssize):
+            if len(str(frc(s1[i]).limit_denominator(ldconst))) > len(str(frc(s2[i]).limit_denominator(ldconst))):
+                l_s[i] = len(str(frc(s1[i]).limit_denominator(ldconst)))
+            else:
+                l_s[i] = len(str(frc(s2[i]).limit_denominator(ldconst)))
     for j in range(c):
         for i in range(r):
             if len(str(a[i][j])) > l_a[j]:
@@ -22,10 +46,10 @@ def correct_output(a, s1, s2, price):
     print ("\n Price оf the game: ", frc(price).limit_denominator(ldconst))
     print("\n | p || ", end="")
     for i in range(0, r):
-        print(frc(s1[i]).limit_denominator(ldconst),end=" | ")
+        print(str(frc(s1[i]).limit_denominator(ldconst)).rjust(l_s[i]),end=" | ")
     print("\n | q || ", end="")
     for i in range(0, c):
-        print(frc(s2[i]).limit_denominator(ldconst),end=" | ")
+        print(str(frc(s2[i]).limit_denominator(ldconst)).rjust(l_s[i]),end=" | ")
     print("\n\n")
 
 def spectre_vizual(s):
@@ -145,7 +169,6 @@ def mixed_solution(a1):
     # Составление знаков неравенств в зависимости от размерности input // [.] - для красоты
     c1 = '['+('<=,'*(n)+'>=,'*(m-n))[:-1]+']'    # Максимизация
     c2 = '['+('>=,'*(m))[:-1]+']'                # Минимизация
-    print(a1,n)
     # Транспонируем
     atrans = np.transpose(np.array(a1)[:-n, :])      # Случай общий
     m,n2 = atrans.shape                              # Случай не квадратной матрицы
@@ -240,4 +263,6 @@ not_square_saddle = [[1,2,3],[1,1,1]]
 
 not_square_not_saddle = [[-1,-2,3],[2,4,1]]
 
-nash_equilibrium(fake_test)
+not_square_not_saddleT = [[-1,2],[-2,4],[3,1]]
+
+nash_equilibrium(not_square_not_saddleT)
