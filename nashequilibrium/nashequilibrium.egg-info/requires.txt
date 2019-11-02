@@ -1,5 +1,1 @@
-fraction
-itertools
-math
-numpy
-re
+NumPy

@@ -10,11 +10,5 @@ setup(name='nashequilibrium',
       license='MSU',
       packages=find_packages(),
       keywords=['saddle point','matrix game'],
-      install_requires=[
-            'numpy',
-            'itertools',
-            'math',
-            're',
-            'fraction'
-      ]
+      install_requires=['NumPy']
 )
