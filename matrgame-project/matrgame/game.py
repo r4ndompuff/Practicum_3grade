@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 import numpy as np
 import itertools as it                      # Для комбинаций матрицы (в какой-то момент мы все ленимся)
 from math import factorial                  # И ленимся даже не в один момент

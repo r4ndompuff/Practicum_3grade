@@ -1,3 +1,6 @@
+# -*- coding: utf-8 -*-
+from .game import nash_equilibrium
+
 from game import nash_equilibrium
 from fractions import Fraction as frc # Так как сранивать float без eps невозможно
 import numpy as np
