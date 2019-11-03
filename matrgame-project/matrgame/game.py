@@ -1,15 +1,38 @@
 import numpy as np
-import itertools as it
-from math import factorial
-import re
-from fractions import Fraction as frc
-import matplotlib.pyplot as plt
+import itertools as it                      # Для комбинаций матрицы (в какой-то момент мы все ленимся)
+from math import factorial                  # И ленимся даже не в один момент
+import re                                   # Распарсивать знаки неравенств
+from fractions import Fraction as frc       # Float -> Обыкновенные дроби
 
+# Красивый вывод, как в задании
 def correct_output(a, s1, s2, price):
-    r, c = a.shape
-    ldconst = 1000
-    l_s = np.ones(max(s1.size, s2.size), dtype = 'int')
+    r, c = a.shape                          # Размеры матрицы
+    ldconst = 1000                          # Максимальное значение в знаменателе
+    ssize = max(s1.size, s2.size)           # Наибольшая длина (при прямоугольной игровой матрице)
+    l_s = np.ones(ssize, dtype = 'int')
     l_a = np.ones(c, dtype = 'int')
+    if s1.size < s2.size:
+        for i in range(s1.size):
+            if len(str(frc(s1[i]).limit_denominator(ldconst))) > len(str(frc(s2[i]).limit_denominator(ldconst))):
+                l_s[i] = len(str(frc(s1[i]).limit_denominator(ldconst)))
+            else:
+                l_s[i] = len(str(frc(s2[i]).limit_denominator(ldconst)))
+        for i in range(s1.size, s2.size):
+            l_s[i] = len(str(frc(s2[i]).limit_denominator(ldconst)))
+    elif s1.size > s2.size:
+        for i in range(s2.size):
+            if len(str(frc(s1[i]).limit_denominator(ldconst))) > len(str(frc(s2[i]).limit_denominator(ldconst))):
+                l_s[i] = len(str(frc(s1[i]).limit_denominator(ldconst)))
+            else:
+                l_s[i] = len(str(frc(s2[i]).limit_denominator(ldconst)))
+        for i in range(s2.size, s1.size):
+            l_s[i] = len(str(frc(s1[i]).limit_denominator(ldconst)))
+    else:
+        for i in range(ssize):
+            if len(str(frc(s1[i]).limit_denominator(ldconst))) > len(str(frc(s2[i]).limit_denominator(ldconst))):
+                l_s[i] = len(str(frc(s1[i]).limit_denominator(ldconst)))
+            else:
+                l_s[i] = len(str(frc(s2[i]).limit_denominator(ldconst)))
     for j in range(c):
         for i in range(r):
             if len(str(a[i][j])) > l_a[j]:
@@ -22,35 +45,27 @@ def correct_output(a, s1, s2, price):
     print ("\n Price оf the game: ", frc(price).limit_denominator(ldconst))
     print("\n | p || ", end="")
     for i in range(0, r):
-        print(frc(s1[i]).limit_denominator(ldconst),end=" | ")
+        print(str(frc(s1[i]).limit_denominator(ldconst)).rjust(l_s[i]),end=" | ")
     print("\n | q || ", end="")
     for i in range(0, c):
-        print(frc(s2[i]).limit_denominator(ldconst),end=" | ")
+        print(str(frc(s2[i]).limit_denominator(ldconst)).rjust(l_s[i]),end=" | ")
     print("\n\n")
 
-#def spectre_vizual(s):
-#    v = np.arange(1, np.size(s)+1)
-#    plt.plot(v, s, 'ro')
-#    plt.axis([0, np.size(s)+1, 0, 1])
-#    for i in v:
-#        plt.axvline(x = i, ymax = s[i-1])
-#    plt.ylabel("Probablity of strategy usage")
-#    plt.xlabel("Number of strategy")
-#    plt.show()
-
-
-def permutation(m, n):     # Количество всевозможных перестановок
+# Количество всевозможных перестановок
+def permutation(m, n):
     return factorial(n) / (factorial(n - m) * factorial(m))
 
-def combinations(matr, n): # Доработанный библиотечный combinations для нашего случая
+# Доработанный библиотечный combinations для нашего случая
+def combinations(matr, n):
     timed = list(map(list, it.combinations(matr, n)))
     return np.array(list(timed))
 
+# Проверка крайних точек на удовлетворение всей системе многогранника
 def check_extreme(matr, arr, x, sym_comb, m):
-    sym_comb = sym_comb.replace(']', '')   # Убираем левую скобку знаков неравенств
-    sym_comb = sym_comb.replace('[', '')   # Убираем правую скобку знаков неравенств
-    sym_comb = re.split("[ ,]", sym_comb)  # Из строки получаем вектор знаков неравенств
-    for i in range(int(m)):                # m - кол-во неравенств
+    sym_comb = sym_comb.replace(']', '')             # Убираем левую скобку знаков неравенств
+    sym_comb = sym_comb.replace('[', '')             # Убираем правую скобку знаков неравенств
+    sym_comb = re.split("[ ,]", sym_comb)            # Из строки получаем вектор знаков неравенств
+    for i in range(int(m)):                          # m - кол-во неравенств
         td_answer = float("{0:.7f}".format(KahanSum(matr[i] * x)))
         # Умножаем i-ю строку матрицы на решение, а дальше проверяем удовлетворяет ли
         # оно неравенству с правой частью. Также округляем float на 7-х знаках, чтобы питон не бузил
@@ -76,168 +91,114 @@ def check_extreme(matr, arr, x, sym_comb, m):
             return 0
     return 1
 
+# Поиск крайних точек канонического многогранника
 def extreme_points(A, b, sym_comb):
-    # A = [[a,b,c],[x,y,z],...,[...]]
-    # b = [a,b,c,e,d,x,...,x,y,z]
-    # sym_comb = '[<=,>=,=,>,<,!=,...,>=]' или любой другой ввод строки знаков через запятую
-    # Ввод
-    A = np.array(A) # Левая часть
-    b = np.array(b) # Праввая часть
-    m, n = A.shape  # Размер левой части - строки/столбцы
+    # Подготовка
+    m, n = A.shape                                        # Размер левой части - строки/столбцы
     # Обработка
-    ans_comb = np.zeros((1, n)) # Создаём единичный нулевой вектор, где будем хранить ответы
-    arr_comb = combinations(b, n) # Всевозможные комбинации правой части
-    matr_comb = combinations(A, n) # Соответствующие им комбинации левой части
-    for i in range(int(permutation(n, m))): # Количество перестановок (C^m)_n
-        if np.linalg.det(matr_comb[i]) != 0:  # Если определитель равен нулю -> решений нет
+    ans_comb = np.zeros((1, n))                           # Создаём единичный нулевой вектор, где будем хранить ответы
+    arr_comb = combinations(b, n)                         # Всевозможные комбинации правой части
+    matr_comb = combinations(A, n)                        # Соответствующие им комбинации левой части
+    for i in range(int(permutation(n, m))):               # Количество перестановок (C^m)_n
+        if np.linalg.det(matr_comb[i]) != 0:              # Если определитель равен нулю -> решений нет
             x = np.linalg.solve(np.array(matr_comb[i], dtype='float'),
                                 np.array(arr_comb[i], dtype='float'))  # Поиск решения матрицы nxn для иксов
-            ans_comb = np.vstack([ans_comb, x])  # Записываем наше решение
-    ans_comb = np.delete(ans_comb, 0, axis=0)    # Удаляем наш нулевой вектор (см. строка 56)
-    j = 0                                        # Счётчик успешной проверки
+            ans_comb = np.vstack([ans_comb, x])           # Записываем наше решение
+    ans_comb = np.delete(ans_comb, 0, axis=0)             # Удаляем наш нулевой вектор (см. строка 56)
+    j = 0                                                 # Счётчик успешной проверки
     for i in range(len(ans_comb)):
         if check_extreme(A, b, ans_comb[j], sym_comb, m): # Проверка - является ли решение частной системы - решением общей
             j += 1                                        # Если да, то идём дальше
         else:
             ans_comb = np.delete(ans_comb, j, axis=0)     # Если нет, то удаляем решение
-    # Output
+    # Вывод
     return ans_comb
 
-###### Функция для решения игры с седловыми точками ######
-
+# Функция для решения игры с седловыми точками
 def fixed_solution(mtr, mins, maxs, price):
     rows, columns = mtr.shape
-    A_points = np.zeros(rows, dtype='int')      # Векор с вероятностями стратегий игрока А
-    B_points = np.zeros(columns, dtype='int')   # Векор с вероятностями стратегий игрока В
-    strategies = np.zeros((2,1), dtype='int')   # Матрица с координатами стратегий
-    strat_point = 0                             # Количество седловых точек в игре
+    A_points = np.zeros(rows, dtype='int')            # Векор с вероятностями стратегий игрока А
+    B_points = np.zeros(columns, dtype='int')         # Векор с вероятностями стратегий игрока В
+    strategies = np.zeros((2,1), dtype='int')         # Матрица с координатами стратегий
+    strat_point = 0                                   # Количество седловых точек в игре
     for i in range(rows):
         for j in range(columns):
             if mtr[i,j] == mins[i] and mtr[i,j] == maxs[j] and mtr[i,j] == price:
-                strategies[0,strat_point] = i   # Координата строки с седловой точкой
-                strategies[1,strat_point] = j   # Кордината столбца с седловой точкой
+                strategies[0,strat_point] = i         # Координата строки с седловой точкой
+                strategies[1,strat_point] = j         # Кордината столбца с седловой точкой
                 strat_point += 1
                 strategies = np.concatenate((strategies, np.zeros((2,1), dtype='int')), axis=1)
-                A_points[i] = 1                 # Eсли на позиции i есть седловая точка, то записываем 1
-                B_points[j] = 1                 # Eсли на позиции j есть седловая точка, то записываем 1
-    strategies = strategies[0:2,0:strat_point]  # Отсекаем лишний последний столбец
-    strat_a, strat_b = strategies.shape
-
+                A_points[i] = 1                       # Eсли на позиции i есть седловая точка, то записываем 1
+                B_points[j] = 1                       # Eсли на позиции j есть седловая точка, то записываем 1
+    strategies = strategies[0:2,0:strat_point]        # Отсекаем лишний последний столбец
+    # Вывод
     return A_points/np.sum(A_points), B_points/np.sum(B_points), mtr[strategies[0,0],strategies[1,0]]
 
-    #print("Strategies of players (we count coordinates from zero):")
-    #for i in range(strat_b):
-        #print('Player A:',strategies[0,i],strategies[1,i],' ','Player B:',strategies[0,i],strategies[1,i],' price:',mtr[strategies[0,i],strategies[1,i]])
-    #print("Probability of each strategy of player A:", A_points/np.sum(A_points))  # Окончательный вектор с вероятностями для игрока А
-    #print("Probability of each strategy of player B:", B_points/np.sum(B_points))  # Окончательный вектор с вероятностями для игрока В
-
-###### Функция для решения игры в смешанных стратегиях ######
-
+# Функция для решения игры в смешанных стратегиях
 def mixed_solution(a1):
-    a = a1
     # Добавляем к игровой матрице условия неотрицательности каждой неизвестной
     a1 = np.concatenate((a1,np.eye(np.size(np.array(a1, dtype = float),1))), axis = 0)
-    # Составляем правую часть для матричной игры
-    b = np.concatenate((np.ones(np.size(np.array(a1),1)),np.zeros(np.size(np.array(a1),1))), axis = 0)
-    m,n = (np.array(a1)).shape # Получаем количество неизвестных
-
-
-    # Составление знаков неравенств в зависимости от размерности input // [.] - для красоты
-    c1 = '['+('<=,'*(n)+'>=,'*(m-n))[:-1]+']'    # Максимизация
-    c2 = '['+('>=,'*(m))[:-1]+']'                # Минимизация
-    print(a1,n)
+    m1,n1 = (np.array(a1)).shape                      # Получаем размеры полученной матрицы
     # Транспонируем
-    atrans = np.transpose(np.array(a1)[:-n, :])      # Случай общий
-    m,n2 = atrans.shape                              # Случай не квадратной матрицы
+    atrans = np.transpose(np.array(a1)[:-n1, :])      # Случай общий
+    m2,n2 = atrans.shape                              # Случай не квадратной матрицы
     a2 = np.concatenate((atrans, np.eye(n2, dtype = float)), axis=0)
-    max_points = extreme_points(a1, b, c1) # Массив, где надо найти максимум
-    min_points = extreme_points(a2, b, c2) # Массив, где надо найти минимум
-    max_size = np.size(max_points,0) # Размер массива с максимумом (только строки)
-    min_size = np.size(min_points,0) # Размер массива с минимумом (только строки)
-
+    # Составляем правую часть для матричной игры
+    b1 = np.concatenate((np.ones(m1-n1),np.zeros(n1)), axis = 0)
+    b2 = np.concatenate((np.ones(m2),np.zeros(n2)), axis = 0)
+    # Составление знаков неравенств в зависимости от размерности input // [.] - для красоты
+    c1 = '['+('<=,'*(m1-n1)+'>=,'*(n1))[:-1]+']'      # Максимизация
+    c2 = '['+('>=,'*(m2+n2))[:-1]+']'                 # Минимизация
+    max_points = extreme_points(a1, b1, c1)           # Массив, где надо найти максимум
+    min_points = extreme_points(a2, b2, c2)           # Массив, где надо найти минимум
+    max_size = np.size(max_points,0)                  # Размер массива с максимумом (только строки)
+    min_size = np.size(min_points,0)                  # Размер массива с минимумом (только строки)
     # Поиск максимума
     max = KahanSum(max_points[0])
     max_solve = max_points[0]
     for i in range(1,max_size):
         if (KahanSum(max_points[i]) > max):
-            max = KahanSum(max_points[i]) # Запомнили максимальную сумму
-            max_solve = max_points[i]     # Запомнили максимальный вектор
-
+            max = KahanSum(max_points[i])             # Запомнили максимальную сумму
+            max_solve = max_points[i]                 # Запомнили максимальный вектор
     # Поиск минимума
     min = KahanSum(min_points[0])
     min_solve = min_points[0]
     for i in range(1,min_size):
         if (KahanSum(min_points[i]) < min):
-            min = KahanSum(min_points[i]) # Запомнили минимальную сумму
-            min_solve = min_points[i]     # Запомнили минимальный вектор
-
+            min = KahanSum(min_points[i])             # Запомнили минимальную сумму
+            min_solve = min_points[i]                 # Запомнили минимальный вектор
     # Вывод
     return np.true_divide(min_solve,max), np.true_divide(max_solve,max), 1/max
 
-    #print("First player: ", np.true_divide(min_solve,max))
-    #print("Second player: ", np.true_divide(max_solve, max))
-    #print("Cost of the game", 1/max)
-
-###### Метод Кэхэна для аккуратной суммы float ######
-
+# Метод Кэхэна для аккуратной суммы float
 def KahanSum(input):
     sum = 0.0
     c = 0.0
-    for i in range(len(input)):     # Перебор по каждой цифре числа
-        y = input[i] - c            # Сначала с = 0
-        t = sum + y                 # Alas, sum is big, y small, so low-order digits of y are lost.
-        c = (t - sum) - y           # (t - sum) cancels the high-order part of y; subtracting y recovers negative (low part of y)
+    for i in range(len(input)):                       # Перебор по каждой цифре числа
+        y = input[i] - c                              # Сначала с = 0
+        t = sum + y
+        c = (t - sum) - y
         sum = t
     return sum
 
-###### Основная функция ######
-
+# Основная функция
 def nash_equilibrium(mtr):
     mtr = np.array(mtr)
-    rows, columns = mtr.shape       	   # Получаем строки/столбцы матрицы
-    mins = mtr.min(axis = 1).transpose()   # Получаем вектор с минимумами
-    maxs = mtr.max(axis = 0)               # Находим вектор со столбцами
-    min = mins.max()                       # Получаем максимум из минимумов
-    max = maxs.min()                       # Получаем минимум из максимумов
-
-    if min == max:
-        price = min
-        print("Saddle point : ", price)
-        p, q, price = fixed_solution(mtr, mins, maxs, price)
-    else:
+    rows, columns = mtr.shape       	             # Получаем строки/столбцы матрицы
+    mins = mtr.min(axis = 1).transpose()             # Получаем вектор с минимумами
+    maxs = mtr.max(axis = 0)                         # Находим вектор со столбцами
+    min = mins.max()                                 # Получаем максимум из минимумов
+    max = maxs.min()                                 # Получаем минимум из максимумов
+    if min == max:                                   # Если минимум равен максимуму, тогда седло
+        print("Saddle point: ", min)
+        p, q, price = fixed_solution(mtr, mins, maxs, min)
+    else:                                            # Иначе (не) "симплекс"
         print("No saddle point")
         p, q, price = mixed_solution(mtr)
-    correct_output(mtr, p, q, price)
-    #spectre_vizual(p)
-    #spectre_vizual(q)
+    correct_output(mtr, p, q, price)                 # Красивый вывод
     return p, q, frc(price).limit_denominator(1000)
 
-# MAIN PART
+# Настройки, чтобы вывод был аккуратным
 np.set_printoptions(precision=6,
                     suppress=True,
-					formatter={'all':lambda x: str(frc(x).limit_denominator())})  # Чтобы вывод был аккуратным
-
-#mtr_game_str = input("Enter your matrix game:\n")   # Получили строку
-# Распарсиваем из строки в матричный вид
-#mtr_game_str = mtr_game_str.replace("],[", "; ")
-#mtr_game_str = mtr_game_str.replace(",", " ")
-#mtr_game_str = mtr_game_str.replace("[[", "")
-#mtr_game_str = mtr_game_str.replace("]]", "")
-#mtr_game = np.matrix(mtr_game_str)
-
-# Manual tests
-akr = [[3,6,1,4],[5,2,4,2],[1,4,3,5],[4,3,4,-1]] # Тест из интернета
-
-task_test_matrix = [[4,0,6,2,2,1],[3,8,4,10,4,4],[1,2,6,5,0,0],[6,6,4,4,10,3],[10,4,6,4,0,9],[10,7,0,7,9,8]] # Тест из задания прака
-
-fake_test = [[3, 1],[1, 3]]    # Тест Миши
-
-saddle_test = [[1, 2],[3, 4]]  # Седловая точка 1
-
-saddle2_test = [[2, 2],[2, 2]] # Седловая точка 2
-
-not_square_saddle = [[1,2,3],[1,1,1]]
-
-not_square_not_saddle = [[-1,-2,3],[2,4,1]]
-
-#nash_equilibrium(fake_test)
+					formatter={'all':lambda x: str(frc(x).limit_denominator())})
