@@ -1,23 +1,22 @@
-# -*- coding: utf-8 -*-
-
 import numpy as np
 import itertools as it                      # Для комбинаций матрицы (в какой-то момент мы все ленимся)
 from math import factorial                  # И ленимся даже не в один момент
 import re                                   # Распарсивать знаки неравенств
 from fractions import Fraction as frc       # Float -> Обыкновенные дроби
+import matplotlib.pyplot as plt             # Визуализация
 
 # Красивый вывод, как в задании
 def correct_output(a, s1, s2, price):
     r, c = a.shape                          # Размеры матрицы
     ldconst = 1000                          # Максимальное значение в знаменателе
     ssize = max(s1.size, s2.size)           # Наибольшая длина (при прямоугольной игровой матрице)
-    l_s = np.ones(ssize, dtype = 'int')
+    l_s = np.ones(ssize, dtype = 'int')     
     l_a = np.ones(c, dtype = 'int')
     if s1.size < s2.size:
         for i in range(s1.size):
             if len(str(frc(s1[i]).limit_denominator(ldconst))) > len(str(frc(s2[i]).limit_denominator(ldconst))):
                 l_s[i] = len(str(frc(s1[i]).limit_denominator(ldconst)))
-            else:
+            else: 
                 l_s[i] = len(str(frc(s2[i]).limit_denominator(ldconst)))
         for i in range(s1.size, s2.size):
             l_s[i] = len(str(frc(s2[i]).limit_denominator(ldconst)))
@@ -25,10 +24,10 @@ def correct_output(a, s1, s2, price):
         for i in range(s2.size):
             if len(str(frc(s1[i]).limit_denominator(ldconst))) > len(str(frc(s2[i]).limit_denominator(ldconst))):
                 l_s[i] = len(str(frc(s1[i]).limit_denominator(ldconst)))
-            else:
+            else: 
                 l_s[i] = len(str(frc(s2[i]).limit_denominator(ldconst)))
         for i in range(s2.size, s1.size):
-            l_s[i] = len(str(frc(s1[i]).limit_denominator(ldconst)))
+            l_s[i] = len(str(frc(s1[i]).limit_denominator(ldconst)))		    
     else:
         for i in range(ssize):
             if len(str(frc(s1[i]).limit_denominator(ldconst))) > len(str(frc(s2[i]).limit_denominator(ldconst))):
@@ -52,6 +51,17 @@ def correct_output(a, s1, s2, price):
     for i in range(0, c):
         print(str(frc(s2[i]).limit_denominator(ldconst)).rjust(l_s[i]),end=" | ")
     print("\n\n")
+
+# Визуализация
+def spectre_vizual(s):
+    v = np.arange(1, np.size(s)+1)
+    plt.plot(v, s, 'ro')
+    plt.axis([0, np.size(s)+1, 0, 1])
+    for i in v:
+        plt.axvline(x = i, ymax = s[i-1])
+    plt.ylabel("Probablity of strategy usage")
+    plt.xlabel("Number of strategy")    
+    plt.show()
 
 # Количество всевозможных перестановок
 def permutation(m, n):
@@ -178,8 +188,8 @@ def KahanSum(input):
     c = 0.0
     for i in range(len(input)):                       # Перебор по каждой цифре числа
         y = input[i] - c                              # Сначала с = 0
-        t = sum + y
-        c = (t - sum) - y
+        t = sum + y                 
+        c = (t - sum) - y           
         sum = t
     return sum
 
@@ -198,9 +208,32 @@ def nash_equilibrium(mtr):
         print("No saddle point")
         p, q, price = mixed_solution(mtr)
     correct_output(mtr, p, q, price)                 # Красивый вывод
-    return p, q, frc(price).limit_denominator(1000)
+    spectre_vizual(p)                                # Визуализация p
+    spectre_vizual(q)                                # Визуализация q
+    return p, q, price
 
 # Настройки, чтобы вывод был аккуратным
 np.set_printoptions(precision=6,
                     suppress=True,
 					formatter={'all':lambda x: str(frc(x).limit_denominator())})
+
+# Ручные тесты для отладки
+akr = [[3, 6, 1, 4],[5, 2, 4, 2],[1, 4, 3, 5],[4, 3, 4, -1]] # Тест из интернета
+
+task_test_matrix = [[4, 0, 6, 2, 2, 1],[3, 8, 4, 10, 4, 4],
+                    [1, 2, 6, 5, 0, 0],[6, 6, 4, 4, 10, 3],
+                    [10, 4, 6, 4, 0, 9],[10, 7, 0, 7, 9, 8]] # Тест из задания прака
+
+fake_test = [[3, 1],[1, 3]]                                  # Тест Миши
+
+saddle_test = [[1, 2],[3, 4]]                                # Седловая точка 1
+						
+saddle2_test = [[2, 2],[2, 2]]                               # Седловая точка 2
+
+not_square_saddle = [[1, 2, 3],[1, 1, 1]]                    # Прямоугольная седловая точка 
+
+not_square_not_saddle = [[-1, -2, 3],[2, 4, 1]]              # Прямоугольная не седловая
+
+not_square_not_saddle2 = [[-1, 2],[-2, 4],[3, 1]]            # Прямоугольная не седловая 2
+
+#nash_equilibrium(not_square_not_saddle)
