@@ -1,0 +1,12 @@
+# !/bin/bash
+
+echo "Starting installation"
+
+python3 setup.py sdist
+
+virtualenv -p python3 env
+
+./env/bin/python3 setup.py install
+
+echo "Installation complete!"
+echo "To run the code type "./env/bin/python3""
