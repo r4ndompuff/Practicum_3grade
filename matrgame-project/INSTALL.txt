@@ -1,0 +1,3 @@
+To run install script:
+$ chmod ugo+x install
+$ ./install
