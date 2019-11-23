@@ -10,3 +10,8 @@ training = pd.read_excel('training.xlsx')
 training_matrix = training.to_numpy()
 print(training_matrix[0,0])
 print(training_matrix[0,1])
+rows, columns = training_matrix.shape
+print(rows)
+print(columns)
+excpected_value = np.zeros(rows, dtype='float') #вектор математических ожиданий элементов временного ряда
+variation = np.zeros(rows, dtype='float') ##вектор дисперсий элементов временного ряда
