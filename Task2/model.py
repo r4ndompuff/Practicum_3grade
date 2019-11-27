@@ -4,23 +4,23 @@ import statsmodels as sm
 import xlrd as xl
 import matplotlib.pyplot as plt
 
-print("the beginning of task2")
+def avg_data(df):
+    averages = []
+    for i in training.index:
+        elem = 0
+        for j in range(i+1):
+            elem = elem + training['Value'][j]/(i+1)
+        averages.append(elem)
+    return averages
+
+# MAIN
 
 #training = xl.open_workbook("training.xlsx")
 training = pd.read_excel('training.xlsx')
 print(training.columns) #названия столбов
 print(training.index) #количество строк (считается с нуля)
 
-averages = []
-for i in training.index:
-    elem = 0
-    for j in range(i+1):
-        elem = elem + training['Value'][j]/(i+1)
-    averages.append(elem)
-
-#print(averages)
-
-training['Average'] = averages #добавляем новый столбец в наш dataframe
+training['Average'] = avg_data(training) #добавляем новый столбец в наш dataframe
 
 stacked = plt.gca() #2 plots 1 figure
 
