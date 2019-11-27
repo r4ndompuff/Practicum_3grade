@@ -9,8 +9,10 @@ def avg_data(df):
     for i in df.index:
         elem = 0
         for j in range(i+1):
-            elem = elem + df['Value'][j]/(i+1)
+            elem = elem + df['Value'][j]
+        elem = elem/(i+1)
         averages.append(elem)
+    #print(averages)
     return averages
 
 # MAIN
