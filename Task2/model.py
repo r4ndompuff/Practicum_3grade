@@ -6,10 +6,10 @@ import matplotlib.pyplot as plt
 
 def avg_data(df):
     averages = []
-    for i in training.index:
+    for i in df.index:
         elem = 0
         for j in range(i+1):
-            elem = elem + training['Value'][j]/(i+1)
+            elem = elem + df['Value'][j]/(i+1)
         averages.append(elem)
     return averages
 
