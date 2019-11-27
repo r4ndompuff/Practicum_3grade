@@ -15,6 +15,10 @@ def avg_data(df):
     #print(averages)
     return averages
 
+def df_test():
+    tao = 0
+    #maybe use t-distribution
+
 # MAIN
 
 #training = xl.open_workbook("training.xlsx")
