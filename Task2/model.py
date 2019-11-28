@@ -1,6 +1,6 @@
 import numpy as np
 import pandas as pd
-import statsmodels as sm
+import statsmodels.api as sm
 import xlrd as xl
 import matplotlib.pyplot as plt
 
@@ -15,12 +15,16 @@ def avg_data(df):
             elem = elem + df['Value'][j]
         elem = elem/i
         averages.append(elem)
-    print(averages[359])
+    #print(averages[359])
     return averages
 
-def df_test():
-    tao = 0
-    #maybe use t-distribution
+def df_test(df):
+    values_avg = np.average(df['Value'].to_numpy())
+    variation = np.var(df['Value'].to_numpy())
+    variation_2 = (df.size//2)/(df.size//2 -2)
+    #print(variation)
+    t = values_avg/(((variation**2)/(df.size//2)))**(1/2)
+    return t
 
 # MAIN
 
@@ -38,13 +42,17 @@ stacked = plt.gca() #2 plots 1 figure
 
 training.plot(kind='line',x='Date',y='Value',ax=stacked)
 training.plot(kind='line',x='Date',y='Average',color='green',ax=stacked)
-plt.show()
+#plt.show()
 
-training_matrix = training.to_numpy()
+print(df_test(training))
+print(sm.tsa.adfuller(training['Value']))
+
+
+#training_matrix = training.to_numpy()
 #print(training_matrix[0,0])
 #print(training_matrix[0,1])
-rows, columns = training_matrix.shape
+#rows, columns = training_matrix.shape
 #print(rows)
 #print(columns)
-excpected_value = np.zeros(rows, dtype='float') #вектор математических ожиданий элементов временного ряда
-variation = np.zeros(rows, dtype='float') ##вектор дисперсий элементов временного ряда
+#excpected_value = np.zeros(rows, dtype='float') #вектор математических ожиданий элементов временного ряда
+#variation = np.zeros(rows, dtype='float') ##вектор дисперсий элементов временного ряда
