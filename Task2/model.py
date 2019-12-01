@@ -57,10 +57,10 @@ stacked = plt.gca() #2 plots 1 figure
 training.plot(kind='line',x='Date',y='Value',ax=stacked)
 training.plot(kind='line',x='Date',y='Average',color='green',ax=stacked)
 training.plot(kind='line',x='Date',y='Noise',color='purple',ax=stacked)
-plt.show()
+#plt.show()
 
 print(df_test(training))
-#print(np.var(training['Noise'].to_numpy()))
+print(st.mean(training['Noise'].to_numpy()))
 print(sm.tsa.adfuller(training['Value'])) #проверяем рабочесть нашего теста Дики-Фуллера на библиотечном
 
 
