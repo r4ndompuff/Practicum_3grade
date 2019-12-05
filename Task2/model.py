@@ -71,11 +71,11 @@ def df_test(df, ):
     usedlag = maxlag
     #icbest = None
 
-    resols = OLS(xdshort, add_trend(xdall[:, :usedlag + 1], regression)).fit()
+    resols = sm.regression.OLS(xdshort, add_trend(xdall[:, :usedlag + 1], regression)).fit()
     adfstat = resols.tvalues[0]
 
-    pvalue = mackinnonp(adfstat, regression = regression, N = 1)
-    critvalues = mackinnoncrit(N = 1, regression = regression, nobs = df_size)
+    pvalue = sm.tsa.mackinnonp(adfstat, regression = regression, N = 1)
+    critvalues = sm.tsa.mackinnoncrit(N = 1, regression = regression, nobs = df_size)
     critvalues = {"1%" : critvalues[0], "5%" : critvalues[1], "10%" : critvalues[2]}
 
     return adfstat, pvalue, usedlag, nobs, critvalues
