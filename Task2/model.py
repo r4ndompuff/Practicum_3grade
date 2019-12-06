@@ -46,25 +46,24 @@ def df_test_old(df): #типа тест Дики-Фуллера, но на са�
     return t
 
 def df_test(df, ):
-    df_vect = df['Value'].to_numpy()
+    df_vect = df['Value'].to_numpy() #значения ряда из входного Dataframe
     maxlag = None
     regression = 'c'
     autolag = None
-    store = False
     regresults = False
     regressions = {None: 'nc', 0: 'c', 1: 'ct', 2: 'ctt'}
 
-    df_size = df_vect.shape[0]
-    ntrend = len(regression)
+    df_size = df_vect.shape[0] #размер временного ряда
+    ntrend = len(regression) #размер тренда (?)
 
-    maxlag = int(np.ceil(12. * np.power(df_size / 100., 1/2)))
+    maxlag = int(np.ceil(12. * np.power(df_size / 100., 1/2))) #Максимальное запаздывание, вычисляется как ТВГ соотвествующего выражения
     maxlag = min(df_size // 2 - ntrend, maxlag)
     if maxlag < 0:
         raise ValueError('Dataset is too short')
 
-    df_diff = np.diff(df_vect)
-    xdall = sm.tsa.lagmat(df_diff[:, None], maxlag, trim='both', original='in')
-    df_size = xdall.shape[0]
+    df_diff = np.diff(df_vect) #массив с первыми разностями: элем_i = a[i+1] - a[i]
+    xdall = sm.tsa.lagmat(df_diff[:, None], maxlag, trim='both', original='in') #создает массив с лагами, где maxlag - число "сдвигов" вниз
+    df_size = xdall.shape[0] #количество столбцов в массиве лагов
 
     xdall[:, 0] = df_vect[-df_size - 1:-1]  # replace 0 df_diff with level of df_vect
     xdshort = df_diff[-df_size:]
@@ -77,9 +76,13 @@ def df_test(df, ):
 
     pvalue = mackinnonp(adfstat, regression = regression, N = 1)
     critvalues = mackinnoncrit(N = 1, regression = regression, nobs = df_size)
-    critvalues = {"1%" : critvalues[0], "5%" : critvalues[1], "10%" : critvalues[2]}
+    #critvalues = {"1%" : critvalues[0], "5%" : critvalues[1], "10%" : critvalues[2]}
 
-    return adfstat, pvalue, usedlag, df_size, critvalues
+    #return adfstat, pvalue, usedlag, df_size, critvalues
+    if adfstat < critvalues[1]:
+        print("Time series is stationary")
+    else:
+        print("Time series is not stationary")
 
 # MAIN
 
@@ -99,7 +102,8 @@ training.plot(kind='line',x='Date',y='Noise',color='purple',ax=stacked)
 plt.show()
 
 print("Our test:")
-print(df_test(training))
+#print(df_test(training))
+df_test(training)
 #print(st.mean(training['Noise'].to_numpy()))
 print("Library test:")
 print(sm.tsa.adfuller(training['Value'])) #проверяем рабочесть нашего теста Дики-Фуллера на библиотечном
