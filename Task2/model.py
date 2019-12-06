@@ -4,6 +4,7 @@ import statsmodels.api as sm
 import xlrd as xl
 import matplotlib.pyplot as plt
 import statistics as st
+from statsmodels.tsa.adfvalues import mackinnonp, mackinnoncrit
 
 def avg_data(df): #скользящая средняя
     rows, columns = df.shape
@@ -45,15 +46,15 @@ def df_test_old(df): #типа тест Дики-Фуллера, но на са�
     return t
 
 def df_test(df, ):
-    df_vect = df['value'].to_numpy()
+    df_vect = df['Value'].to_numpy()
     maxlag = None
     regression = 'c'
     autolag = None
-    store = false
-    regresults = false
+    store = False
+    regresults = False
     regressions = {None: 'nc', 0: 'c', 1: 'ct', 2: 'ctt'}
 
-    df_size = df_vect.shape
+    df_size = df_vect.shape[0]
     ntrend = len(regression)
 
     maxlag = int(np.ceil(12. * np.power(df_size / 100., 1/2)))
@@ -62,23 +63,23 @@ def df_test(df, ):
         raise ValueError('Dataset is too short')
 
     df_diff = np.diff(df_vect)
-    xdall = sm.tsa.lagmat(xdiff[:, None], maxlag, trim='both', original='in')
+    xdall = sm.tsa.lagmat(df_diff[:, None], maxlag, trim='both', original='in')
     df_size = xdall.shape[0]
 
-    xdall[:, 0] = x[-df_size - 1:-1]  # replace 0 xdiff with level of x
-    xdshort = xdiff[-df_size:]
+    xdall[:, 0] = df_vect[-df_size - 1:-1]  # replace 0 df_diff with level of df_vect
+    xdshort = df_diff[-df_size:]
 
     usedlag = maxlag
     #icbest = None
 
-    resols = sm.regression.OLS(xdshort, add_trend(xdall[:, :usedlag + 1], regression)).fit()
+    resols = sm.OLS(xdshort, sm.tsa.add_trend(xdall[:, :usedlag + 1], regression)).fit()
     adfstat = resols.tvalues[0]
 
-    pvalue = sm.tsa.mackinnonp(adfstat, regression = regression, N = 1)
-    critvalues = sm.tsa.mackinnoncrit(N = 1, regression = regression, nobs = df_size)
+    pvalue = mackinnonp(adfstat, regression = regression, N = 1)
+    critvalues = mackinnoncrit(N = 1, regression = regression, nobs = df_size)
     critvalues = {"1%" : critvalues[0], "5%" : critvalues[1], "10%" : critvalues[2]}
 
-    return adfstat, pvalue, usedlag, nobs, critvalues
+    return adfstat, pvalue, usedlag, df_size, critvalues
 
 # MAIN
 
@@ -97,8 +98,10 @@ training.plot(kind='line',x='Date',y='Average',color='green',ax=stacked)
 training.plot(kind='line',x='Date',y='Noise',color='purple',ax=stacked)
 plt.show()
 
-print(df_test_old(training))
-print(st.mean(training['Noise'].to_numpy()))
+print("Our test:")
+print(df_test(training))
+#print(st.mean(training['Noise'].to_numpy()))
+print("Library test:")
 print(sm.tsa.adfuller(training['Value'])) #проверяем рабочесть нашего теста Дики-Фуллера на библиотечном
 
 
