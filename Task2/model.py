@@ -71,7 +71,7 @@ def df_test(df, is_numpy = 0):
         df_size = len(df_vect)
     maxlag = regresults = None
     autolag = 'AIC'
-    maxlag = autolag = regresults = None
+    maxlag = regresults = None
     regression = 'c'
     regressions = {None: 'nc', 0: 'c', 1: 'ct', 2: 'ctt'}
 
