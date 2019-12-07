@@ -62,13 +62,9 @@ def df_test_old(df): #типа тест Дики-Фуллера, но на са�
     t = (avg - mode)/(sigma*(rows**(1/2))) #сама формула
     return t
 
-def df_test(df, is_numpy = 0):
-    if (is_numpy == 0):
-        df_vect = df['Value'].to_numpy() #значения ряда из входного Dataframe
-        df_size = df_vect.shape[0] #размер временного ряда
-    else:
-        df_vect = df
-        df_size = len(df_vect)
+def df_test(df):
+    df_vect = df
+    df_size = len(df_vect)
     maxlag = regresults = None
     autolag = 'AIC'
     maxlag = regresults = None
@@ -136,7 +132,7 @@ training.plot(kind='line',x='Date',y='Noise',color='purple',ax=stacked)
 
 print("Our test:")
 #print(df_test(training))
-df_test(training)
+df_test(training['Value'])
 #print(st.mean(training['Noise'].to_numpy()))
 print("Library test:")
 print(sm.tsa.adfuller(training['Value'])) #проверяем рабочесть нашего теста Дики-Фуллера на библиотечном
@@ -159,7 +155,7 @@ for k in range(1,len(values)):
 
     oper_values_cutted = oper_values[k:len(oper_values)+(1-k)*(len(values)-k) + counter]
     counter = counter - (k-1)
-    if df_test(oper_values_cutted,1):
+    if df_test(oper_values_cutted):
         flag = 1;
         max_k = k;
     print(oper_values_cutted)
