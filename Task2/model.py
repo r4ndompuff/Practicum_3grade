@@ -23,6 +23,29 @@ def diff_operator(set, k):
     #print("SUM: ", sum)
     return sum
 
+def integral_definer(df):
+    values = df
+    oper_values = np.array([0]).astype(float)
+    counter = 0;
+    flag = 0;
+    max_k = 0;
+    #print(sm.tsa.adfuller(oper_values))
+    for k in range(1,len(values)):
+        if flag:
+                continue;
+        for i in range(1, len(values)+1):
+            if ((i-k-1) >= 0):
+                oper_values = np.append(oper_values, 0)
+                oper_values[i-1] = diff_operator(values[i-k-1:i], k)
+
+        oper_values_cutted = oper_values[k:len(oper_values)+(1-k)*(len(values)-k) + counter]
+        counter = counter - (k-1)
+        print(k, " test: ")
+        if df_test(oper_values_cutted):
+            flag = 1;
+            max_k = k;
+    return max_k
+
 def avg_data(df): #скользящая средняя
     rows, columns = df.shape
     averages = []
@@ -137,32 +160,11 @@ df_test(training['Value'])
 print("Library test:")
 print(sm.tsa.adfuller(training['Value'])) #проверяем рабочесть нашего теста Дики-Фуллера на библиотечном
 
-values =  training['Value'].to_numpy()
-print(values)
 print()
-oper_values = np.array([0]).astype(float)
-counter = 0;
-flag = 0;
-max_k = 0;
-#print(sm.tsa.adfuller(oper_values))
-for k in range(1,len(values)):
-    if flag:
-            continue;
-    for i in range(1, len(values)+1):
-        if ((i-k-1) >= 0):
-            oper_values = np.append(oper_values, 0)
-            oper_values[i-1] = diff_operator(values[i-k-1:i], k)
 
-    oper_values_cutted = oper_values[k:len(oper_values)+(1-k)*(len(values)-k) + counter]
-    counter = counter - (k-1)
-    if df_test(oper_values_cutted):
-        flag = 1;
-        max_k = k;
-    print(oper_values_cutted)
-    print(k,"/",i, len(oper_values))
-    print()
-
-print("Порядок интегрируемости: ", max_k)
+# Поиск порядка интегрируемости
+values =  training['Value'].to_numpy()
+print("Порядок интегрируемости: ", integral_definer(values))
 
 #training_matrix = training.to_numpy()
 #print(training_matrix[0,0])
