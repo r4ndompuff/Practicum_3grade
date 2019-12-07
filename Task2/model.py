@@ -71,6 +71,7 @@ def df_test(df, is_numpy = 0):
         df_size = len(df_vect)
     maxlag = regresults = None
     autolag = 'AIC'
+    maxlag = autolag = regresults = None
     regression = 'c'
     regressions = {None: 'nc', 0: 'c', 1: 'ct', 2: 'ctt'}
 
@@ -155,7 +156,11 @@ for k in range(1,3):
     print(oper_values)
     print()
 
+<<<<<<< HEAD
 
+=======
+
+>>>>>>> 923b579834ff25fd6f302cd83c66eda2a22c52df
 
 print(df_test(values, 1))
 
