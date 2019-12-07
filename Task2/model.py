@@ -111,10 +111,10 @@ def df_test(df, is_numpy = 0):
 
     #return adfstat, pvalue, usedlag, nobs, critvalues, icbest
     if adfstat < critvalues[1]:
-        print("Time series is stationary")
+        print("Time series is stationary with crit value ", adfstat)
         return True
     else:
-        print("Time series is not stationary")
+        print("Time series is not stationary with crit value ", adfstat)
         return False
 
 # MAIN
