@@ -170,9 +170,9 @@ print()
 values =  training['Value'].to_numpy()
 print("Порядок интегрируемости: ", integral_definer(values))
 
-series = pd.read_excel('testing.xlsx', header=0, parse_dates=[0], index_col=0, squeeze=True)
+training = pd.read_excel('testing.xlsx', header=0, parse_dates=[0], index_col=0, squeeze=True)
 # fit model
-model = ARIMA(series, order=(5,1,0))
+model = ARIMA(training, order=(5,1,0))
 model_fit = model.fit(disp=0)
 print(model_fit.summary())
 # plot residual errors
@@ -184,8 +184,8 @@ plt.show()
 print(residuals.describe())
 
 # Обученная модель предсказывает
-series = pd.read_excel('testing.xlsx', header=0, parse_dates=[0], index_col=0, squeeze=True)
-X = series.values
+testing = pd.read_excel('testing.xlsx', header=0, parse_dates=[0], index_col=0, squeeze=True)
+X = testing.values
 size = int(len(X) * 0.66)
 train, test = X[0:size], X[size:len(X)]
 history = [x for x in train]
