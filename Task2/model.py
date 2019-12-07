@@ -156,12 +156,6 @@ for k in range(1,3):
     print(oper_values)
     print()
 
-<<<<<<< HEAD
-
-=======
-
->>>>>>> 923b579834ff25fd6f302cd83c66eda2a22c52df
-
 print(df_test(values, 1))
 
 #training_matrix = training.to_numpy()
