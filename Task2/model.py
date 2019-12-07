@@ -6,6 +6,10 @@ import matplotlib.pyplot as plt
 import statistics as st
 from math import factorial
 from statsmodels.tsa.adfvalues import mackinnonp, mackinnoncrit
+from statsmodels.graphics.tsaplots import plot_acf, plot_pacf
+from pandas import datetime, DataFrame
+from statsmodels.tsa.arima_model import ARIMA
+from sklearn.metrics import mean_squared_error
 
 def permutation(m, n):
     return factorial(n) / (factorial(n - m) * factorial(m))
@@ -146,11 +150,11 @@ training = pd.read_excel('training.xlsx')
 training['Average'] = avg_data(training) #добавляем новый столбец в наш dataframe
 training['Noise'] = white_noise(training) #добавляем новый столбец в наш dataframe
 
-stacked = plt.gca() #2 plots 1 figure
+#stacked = plt.gca() #2 plots 1 figure
 
-training.plot(kind='line',x='Date',y='Value',ax=stacked)
-training.plot(kind='line',x='Date',y='Average',color='green',ax=stacked)
-training.plot(kind='line',x='Date',y='Noise',color='purple',ax=stacked)
+#training.plot(kind='line',x='Date',y='Value',ax=stacked)
+#training.plot(kind='line',x='Date',y='Average',color='green',ax=stacked)
+#training.plot(kind='line',x='Date',y='Noise',color='purple',ax=stacked)
 #plt.show()
 
 print("Our test:")
@@ -165,6 +169,49 @@ print()
 # Поиск порядка интегрируемости
 values =  training['Value'].to_numpy()
 print("Порядок интегрируемости: ", integral_definer(values))
+
+series = pd.read_excel('testing.xlsx', header=0, parse_dates=[0], index_col=0, squeeze=True)
+# fit model
+model = ARIMA(series, order=(5,1,0))
+model_fit = model.fit(disp=0)
+print(model_fit.summary())
+# plot residual errors
+residuals = DataFrame(model_fit.resid)
+residuals.plot()
+plt.show()
+residuals.plot(kind='kde')
+plt.show()
+print(residuals.describe())
+
+# Обученная модель предсказывает
+series = pd.read_excel('testing.xlsx', header=0, parse_dates=[0], index_col=0, squeeze=True)
+X = series.values
+size = int(len(X) * 0.66)
+train, test = X[0:size], X[size:len(X)]
+history = [x for x in train]
+predictions = list()
+for t in range(len(test)):
+    model = ARIMA(history, order=(5,1,0))
+    model_fit = model.fit(disp=0)
+    output = model_fit.forecast()
+    yhat = output[0]
+    predictions.append(yhat)
+    obs = test[t]
+    history.append(obs)
+    print('predicted=%f, expected=%f' % (yhat, obs))
+error = mean_squared_error(test, predictions)
+print('Test MSE: %.3f' % error)
+# plot
+plt.plot(test)
+plt.plot(predictions, color='red')
+plt.show()
+
+#training1.plot()
+#plt.show()
+
+#plot_acf(training1, lags=50)
+#plot_pacf(training1, lags=50)
+#plt.show()
 
 #training_matrix = training.to_numpy()
 #print(training_matrix[0,0])
