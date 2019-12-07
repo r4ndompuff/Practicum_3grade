@@ -4,7 +4,24 @@ import statsmodels.api as sm
 import xlrd as xl
 import matplotlib.pyplot as plt
 import statistics as st
+from math import factorial
 from statsmodels.tsa.adfvalues import mackinnonp, mackinnoncrit
+
+def permutation(m, n):
+    return factorial(n) / (factorial(n - m) * factorial(m))
+
+def diff_operator(set, k):
+    size = len(set)
+    sum = set[0] * (-1)**(size-1)
+    #print(set);
+    for i in range(1, size):
+        minus_counter = (-1)**(size-i-1)
+        #print("Minus: ", minus_counter)
+        #print("Koef: ", permutation(i,size-1))
+        #print("NUMB: ", set[i])
+        sum = sum + permutation(i,size-1)*minus_counter*set[i]
+    #print("SUM: ", sum)
+    return sum
 
 def avg_data(df): #скользящая средняя
     rows, columns = df.shape
@@ -45,15 +62,17 @@ def df_test_old(df): #типа тест Дики-Фуллера, но на са�
     t = (avg - mode)/(sigma*(rows**(1/2))) #сама формула
     return t
 
-def df_test(df, ):
-    df_vect = df['Value'].to_numpy() #значения ряда из входного Dataframe
-    maxlag = None
+def df_test(df, is_numpy = 0):
+    if (is_numpy == 0):
+        df_vect = df['Value'].to_numpy() #значения ряда из входного Dataframe
+        df_size = df_vect.shape[0] #размер временного ряда
+    else:
+        df_vect = df
+        df_size = len(df_vect)
+    maxlag = autolag = regresults = None
     regression = 'c'
-    autolag = None
-    regresults = False
     regressions = {None: 'nc', 0: 'c', 1: 'ct', 2: 'ctt'}
 
-    df_size = df_vect.shape[0] #размер временного ряда
     ntrend = len(regression) #размер тренда (?)
 
     maxlag = int(np.ceil(12. * np.power(df_size / 100., 1/2))) #Максимальное запаздывание, вычисляется как ТВГ соотвествующего выражения
@@ -81,8 +100,10 @@ def df_test(df, ):
     #return adfstat, pvalue, usedlag, df_size, critvalues
     if adfstat < critvalues[1]:
         print("Time series is stationary")
+        return True
     else:
         print("Time series is not stationary")
+        return False
 
 # MAIN
 
@@ -99,7 +120,7 @@ stacked = plt.gca() #2 plots 1 figure
 training.plot(kind='line',x='Date',y='Value',ax=stacked)
 training.plot(kind='line',x='Date',y='Average',color='green',ax=stacked)
 training.plot(kind='line',x='Date',y='Noise',color='purple',ax=stacked)
-plt.show()
+#plt.show()
 
 print("Our test:")
 #print(df_test(training))
@@ -108,6 +129,24 @@ df_test(training)
 print("Library test:")
 print(sm.tsa.adfuller(training['Value'])) #проверяем рабочесть нашего теста Дики-Фуллера на библиотечном
 
+values =  training['Value'].to_numpy()
+print(values)
+print()
+oper_values = np.array([0]).astype(float)
+
+for k in range(1,3):
+    for i in range(1, len(values)+1):
+        if ((i-k-1) >= 0):
+            oper_values = np.append(oper_values, 0)
+            oper_values[i-1] = diff_operator(values[i-k-1:i], k)
+
+    oper_values = oper_values[k:]
+    print(oper_values)
+    print()
+
+    
+
+print(df_test(values, 1))
 
 #training_matrix = training.to_numpy()
 #print(training_matrix[0,0])
