@@ -145,15 +145,17 @@ values =  training['Value'].to_numpy()
 print(values)
 print()
 oper_values = np.array([0]).astype(float)
-
-for k in range(1,3):
+counter = 0;
+for k in range(1,len(values)):
     for i in range(1, len(values)+1):
         if ((i-k-1) >= 0):
             oper_values = np.append(oper_values, 0)
             oper_values[i-1] = diff_operator(values[i-k-1:i], k)
 
-    oper_values = oper_values[k:]
-    print(oper_values)
+    oper_values_cutted = oper_values[k:len(oper_values)+(1-k)*(len(values)-k) + counter]
+    counter = counter - (k-1)
+    print(oper_values_cutted)
+    print(k,"/",i, len(oper_values))
     print()
 
 print(df_test(values, 1))
