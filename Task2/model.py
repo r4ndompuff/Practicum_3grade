@@ -150,23 +150,23 @@ flag = 0;
 max_k = 0;
 #print(sm.tsa.adfuller(oper_values))
 for k in range(1,len(values)):
+    if flag:
+            continue;
     for i in range(1, len(values)+1):
-        #if flag:
-        #    continue;
         if ((i-k-1) >= 0):
             oper_values = np.append(oper_values, 0)
             oper_values[i-1] = diff_operator(values[i-k-1:i], k)
 
     oper_values_cutted = oper_values[k:len(oper_values)+(1-k)*(len(values)-k) + counter]
     counter = counter - (k-1)
-    #if df_test(oper_values_cutted,1):
-     #   flag = 1;
-     #   max_k = k;
+    if df_test(oper_values_cutted,1):
+        flag = 1;
+        max_k = k;
     print(oper_values_cutted)
     print(k,"/",i, len(oper_values))
     print()
 
-#print("Порядок интегрируемости: ", max_k)
+print("Порядок интегрируемости: ", max_k)
 
 #training_matrix = training.to_numpy()
 #print(training_matrix[0,0])
