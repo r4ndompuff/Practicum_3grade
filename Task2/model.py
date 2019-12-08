@@ -92,47 +92,45 @@ def df_test_old(df): #типа тест Дики-Фуллера, но на са�
 def df_test(df):
     df_vect = df
     df_size = len(df_vect)
-    maxlag = regresults = None
     autolag = 'AIC'
-    maxlag = regresults = None
+    maxlag = None
     regression = 'c'
-    regressions = {None: 'nc', 0: 'c', 1: 'ct', 2: 'ctt'}
+    #regressions = {None: 'nc', 0: 'c', 1: 'ct', 2: 'ctt'}
 
-    ntrend = len(regression) #размер тренда (?)
+    trend_size = len(regression) #размер тренда
 
     maxlag = int(np.ceil(12. * np.power(df_size / 100., 1/2))) #Максимальное запаздывание, вычисляется как ТВГ соотвествующего выражения
-    maxlag = min(df_size // 2 - ntrend, maxlag)
+    maxlag = min(df_size // 2 - trend_size, maxlag) #очевидная строчка
     if maxlag < 0:
         raise ValueError('Dataset is too short')
 
     df_diff = np.diff(df_vect) #массив с первыми разностями: элем_i = a[i+1] - a[i]
-    xdall = sm.tsa.lagmat(df_diff[:, None], maxlag, trim='both', original='in') #создает массив с лагами, где maxlag - число "сдвигов" вниз
-    df_size = xdall.shape[0] #количество столбцов в массиве лагов
+    df_diff_all = sm.tsa.lagmat(df_diff[:, None], maxlag, trim='both', original='in') #массив с лагами, где maxlag - число "сдвигов" вниз
+    df_size = df_diff_all.shape[0] #количество столбцов в массиве лагов
 
-    xdall[:, 0] = df_vect[-df_size - 1:-1]  # replace 0 df_diff with level of df_vect
-    xdshort = df_diff[-df_size:]
+    df_diff_all[:, 0] = df_vect[-df_size - 1:-1]  #заменяем первый столбец df_diff_all на df_vect
+    df_diff_short = df_diff[-df_size:] #оставляем последние df_size элементов
 
-    fullRHS = xdall
-    startlag = fullRHS.shape[1] - xdall.shape[1] + 1
-    icbest, bestlag = sm.tsa.stattools._autolag(sm.OLS, xdshort, fullRHS, startlag, maxlag, autolag)
+    fullRHS = df_diff_all
+    startlag = fullRHS.shape[1] - df_diff_all.shape[1] + 1 #начальный лаг
+    icbest, bestlag = sm.tsa.stattools._autolag(sm.OLS, df_diff_short, fullRHS, startlag, maxlag, autolag)
 
-    bestlag -= startlag  # convert to lag not column index
+    bestlag -= startlag  #оптимальное значение лага
 
-    # rerun ols with best autolag
-    xdall = sm.tsa.lagmat(df_diff[:, None], bestlag, trim='both', original='in')
-    nobs = xdall.shape[0]
-    xdall[:, 0] = df_vect[-nobs - 1:-1]  # replace 0 df_diff with level of x
-    xdshort = df_diff[-nobs:]
+    df_diff_all = sm.tsa.lagmat(df_diff[:, None], bestlag, trim='both', original='in') #массив с лагами, но уже при оптимальном значении лага
+    df_size = df_diff_all.shape[0]
+    df_diff_all[:, 0] = df_vect[-df_size - 1:-1]  #заменяем первый столбец df_diff_all на df_vect
+    df_diff_short = df_diff[-df_size:]
     usedlag = bestlag
 
-    resols = sm.OLS(xdshort, sm.tsa.add_trend(xdall[:, :usedlag + 1], regression)).fit()
-    adfstat = resols.tvalues[0]
+    resols = sm.OLS(df_diff_short, sm.tsa.add_trend(df_diff_all[:, :usedlag + 1], regression)).fit() #аппроксимация ряда методом наименьших квадратов
+    adfstat = resols.tvalues[0] #получение необходимой статистики
 
     pvalue = mackinnonp(adfstat, regression = regression, N = 1)
     critvalues = mackinnoncrit(N = 1, regression = regression, nobs = df_size)
     #critvalues = {"1%" : critvalues[0], "5%" : critvalues[1], "10%" : critvalues[2]}
 
-    #return adfstat, pvalue, usedlag, nobs, critvalues, icbest
+    #return adfstat, pvalue, usedlag, df_size, critvalues, icbest
     if adfstat < critvalues[1]:
         print("Time series is stationary with crit value ", adfstat)
         return True
@@ -142,7 +140,7 @@ def df_test(df):
 
 # MAIN
 
-# страница 54 и далее
+# страница 54 и далее (отмена, не читайте эту парашу)
 
 training = pd.read_excel('training.xlsx')
 #print(training.columns) #названия столбов
