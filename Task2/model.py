@@ -51,7 +51,7 @@ def arima_optimizer_AIC(training, testing, p, max_k, q):
                 min_predict = predict
                 min_p = i
                 min_q = j
-    print("ARIMA = ARIMA(%d,%d,%d)" % (min_p, max_k, min_q))
+    print("Best ARIMA = ARIMA(%d,%d,%d)" % (min_p, max_k, min_q))
     print("Minimal AIC = ", min_AIC)
     print('Test MSE: %.3f' % error)
     print("r2 score: ", r2_score)
@@ -235,7 +235,7 @@ training = pd.read_excel('training.xlsx', header=0, parse_dates=[0], index_col=0
 testing = pd.read_excel('testing.xlsx', header=0, parse_dates=[0], index_col=0, squeeze=True)
 
 # Тут мы определяем параметры ARMA модели (p,q)
-# Для нашей модели надо проверить p = 0,1,2,3,4,5 и q = 0,1,2,3
+# Для нашей модели надо проверить p = 0,1,2,3 и q = 0,1,2,3,4,5
 plt.figure()
 plt.subplot(211)
 plot_acf(training_max_k, ax=plt.gca())
@@ -244,7 +244,7 @@ plot_pacf(training_max_k, ax=plt.gca())
 plt.show()
 
 # Модель обучается и предсказывает
-arima_optimizer_AIC(training, testing, 5, max_k, 3)
+arima_optimizer_AIC(training, testing, 3, max_k, 5)
 
 #training_matrix = training.to_numpy()
 #print(training_matrix[0,0])
