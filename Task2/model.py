@@ -149,16 +149,16 @@ def white_noise(df): #первые разности
     noise[0] = noise[1]
     return noise
 
-def get_lag(mod, endog, exog, startlag, maxlag, method, modargs = ()):
+def get_lag(mod, endog, exog, start_lag, max_lag, method, model_args = ()):
     results = {} #dict
     method = method.lower()
-    for lag in range(startlag, startlag + maxlag + 1):
-        #mod_instance = mod(endog, exog[:, :lag], *modargs) #в нашем случае это класс OLS (первый аргумент функции)
+    for lag in range(start_lag, start_lag + max_lag + 1):
+        #mod_instance = mod(endog, exog[:, :lag], *model_args) #в нашем случае это класс OLS (первый аргумент функции)
         #results[lag] = mod_instance.fit()
-        results[lag] = mod(endog, exog[:, :lag], *modargs).fit()
+        results[lag] = mod(endog, exog[:, :lag], *model_args).fit()
     if method == "aic":
-        icbest, bestlag = min((v.aic, k) for k, v in iteritems(results)) #перебор по значениям из results
-    return icbest, bestlag
+        best_inf_crit, best_lag = min((v.aic, k) for k, v in iteritems(results)) #перебор по значениям из results
+    return best_inf_crit, best_lag
 
 def df_test_old(df): #типа тест Дики-Фуллера, но на самом деле хуйня
     rows, columns = df.shape
@@ -181,44 +181,44 @@ def df_test(df):
     df_vect = df
     df_size = len(df_vect)
     autolag = 'AIC'
-    maxlag = None
+    max_lag = None
     regression = 'c'
     #regressions = {None: 'nc', 0: 'c', 1: 'ct', 2: 'ctt'}
 
     trend_size = len(regression) #размер тренда
 
-    maxlag = int(np.ceil(12. * np.power(df_size / 100., 1/2))) #Максимальное запаздывание, вычисляется как ТВГ соотвествующего выражения
-    maxlag = min(df_size // 2 - trend_size, maxlag) #очевидная строчка
-    if maxlag < 0:
+    max_lag = int(np.ceil(12. * np.power(df_size / 100., 1/2))) #Максимальное запаздывание, вычисляется как ТВГ соотвествующего выражения
+    max_lag = min(df_size // 2 - trend_size, max_lag) #очевидная строчка
+    if max_lag < 0:
         raise ValueError('Dataset is too short')
 
     df_diff = np.diff(df_vect) #массив с первыми разностями: элем_i = a[i+1] - a[i]
-    df_diff_all = sm.tsa.lagmat(df_diff[:, None], maxlag, trim='both', original='in') #массив с лагами, где maxlag - число "сдвигов" вниз
+    df_diff_all = sm.tsa.lagmat(df_diff[:, None], max_lag, trim='both', original='in') #массив с лагами, где max_lag - число "сдвигов" вниз
     df_size = df_diff_all.shape[0] #количество столбцов в массиве лагов
 
     df_diff_all[:, 0] = df_vect[-df_size - 1:-1]  #заменяем первый столбец df_diff_all на df_vect
     df_diff_short = df_diff[-df_size:] #оставляем последние df_size элементов
 
-    fullRHS = df_diff_all
-    startlag = fullRHS.shape[1] - df_diff_all.shape[1] + 1 #начальный лаг
-    icbest, bestlag = get_lag(sm.OLS, df_diff_short, fullRHS, startlag, maxlag, autolag)
+    df_diff_full = df_diff_all
+    start_lag = df_diff_full.shape[1] - df_diff_all.shape[1] + 1 #начальный лаг
+    best_inf_crit, best_lag = get_lag(sm.OLS, df_diff_short, df_diff_full, start_lag, max_lag, autolag)
 
-    bestlag -= startlag  #оптимальное значение лага
+    best_lag -= start_lag  #оптимальное значение лага
 
-    df_diff_all = sm.tsa.lagmat(df_diff[:, None], bestlag, trim='both', original='in') #массив с лагами, но уже при оптимальном значении лага
+    df_diff_all = sm.tsa.lagmat(df_diff[:, None], best_lag, trim='both', original='in') #массив с лагами, но уже при оптимальном значении лага
     df_size = df_diff_all.shape[0]
     df_diff_all[:, 0] = df_vect[-df_size - 1:-1]  #заменяем первый столбец df_diff_all на df_vect
     df_diff_short = df_diff[-df_size:]
-    usedlag = bestlag
+    use_lag = best_lag
 
-    resols = sm.OLS(df_diff_short, sm.tsa.add_trend(df_diff_all[:, :usedlag + 1], regression)).fit() #аппроксимация ряда методом наименьших квадратов
+    resols = sm.OLS(df_diff_short, sm.tsa.add_trend(df_diff_all[:, :use_lag + 1], regression)).fit() #аппроксимация ряда методом наименьших квадратов
     adfstat = resols.tvalues[0] #получение необходимой статистики
 
     pvalue = mackinnonp(adfstat, regression = regression, N = 1)
     critvalues = mackinnoncrit(N = 1, regression = regression, nobs = df_size)
     #critvalues = {"1%" : critvalues[0], "5%" : critvalues[1], "10%" : critvalues[2]}
 
-    #return adfstat, pvalue, usedlag, df_size, critvalues, icbest
+    #return adfstat, pvalue, use_lag, df_size, critvalues, best_inf_crit
     if adfstat < critvalues[1]:
         print("Time series is stationary with crit value ", adfstat)
         return True
