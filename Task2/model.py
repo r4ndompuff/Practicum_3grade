@@ -9,10 +9,13 @@ from statsmodels.tsa.seasonal import seasonal_decompose as sdecomp
 from statsmodels.tsa.adfvalues import mackinnonp, mackinnoncrit
 from statsmodels.compat.python import iteritems
 from statsmodels.graphics.tsaplots import plot_acf, plot_pacf
+from statsmodels.regression.linear_model import OLS
+from statsmodels.tools import add_constant
 from pandas import datetime, DataFrame
 from statsmodels.tsa.arima_model import ARIMA
 from sklearn.metrics import mean_squared_error
 from sklearn.metrics import r2_score
+import warnings
 
 def permutation(m, n):
     return factorial(n) / (factorial(n - m) * factorial(m))
@@ -28,6 +31,8 @@ def diff_operator(set, k):
 def AIC_finder(test, predict, k, p, counter, q):
     if (counter > 0):
         c = 0
+    else:
+        c = 1
     n = p + q + c + 1
     predict = np.array(predict)
     ressid = test - predict.ravel()
@@ -39,34 +44,51 @@ def arima_optimizer_AIC(training, testing, p, max_k, q):
     print(training)
     print()
     print(testing)
-    min_AIC = 99999
-    min_p = 0
-    min_q = 0
+    min_AIC_lib = min_our_AIC = 99999
+    min_p_lib = min_p_our = 0
+    min_q_lib = min_q_our = 0
     for i in range(p+1):
         for j in range(q+1):
             print("ARIMA(%d,%d,%d)" % (i, max_k, j))
-            AIC, error, r2_score, test, predict = arima_learn_predict(training, testing, i, max_k, j)
-            if (AIC < min_AIC):
-                min_AIC = AIC
-                min_test = test
-                min_predict = predict
-                min_p = i
-                min_q = j
-    print("Best ARIMA = ARIMA(%d,%d,%d)" % (min_p, max_k, min_q))
-    print("Minimal AIC = ", min_AIC)
-    print('Test MSE: %.3f' % error)
-    print("r2 score: ", r2_score)
+            AIC_lib, our_AIC, error, r2_score, test, predict = arima_learn_predict(training, testing, i, max_k, j)
+            if (AIC_lib < min_AIC_lib):
+                min_AIC_lib = AIC_lib
+                min_test_lib = test
+                min_predict_lib = predict
+                min_p_lib = i
+                min_q_lib = j
+                r2_score_lib = r2_score
+                error_lib = error
+            if (our_AIC < min_our_AIC):
+                min_our_AIC = our_AIC
+                min_test_our = test
+                min_predict_our = predict
+                min_p_our = i
+                min_q_our = j
+                r2_score_our = r2_score
+                error_our = error
+    print()
+    print("Best ARIMA by loglikehood AIC = ARIMA(%d,%d,%d)" % (min_p_lib, max_k, min_q_lib))
+    print("Minimal loglikehood AIC = ", min_AIC_lib)
+    print('Test MSE: %.3f' % error_lib)
+    print("r2 score: ", r2_score_lib)
+    print()
+    print("Best ARIMA by SSE AIC = ARIMA(%d,%d,%d)" % (min_p_our, max_k, min_q_our))
+    print("Minimal SSE AIC = ", min_our_AIC)
+    print('Test MSE: %.3f' % error_our)
+    print("r2 score: ", r2_score_our)
     plt.plot(test)
     plt.plot(predict, color='red')
     plt.show()
 
 def arima_learn_predict(training, testing, p, max_k, q):
+    warnings.simplefilter('ignore')
     size = int(len(training.values))
     train, test = training.values, testing.values
     history = [x for x in train]
     predictions = list()
     for t in range(len(test)):
-        model = ARIMA(history, order=(5,max_k,1))
+        model = ARIMA(history, order=(p,max_k,q))
         model_fit = model.fit(disp=0)
         output = model_fit.forecast()
         yhat = output[0]
@@ -77,8 +99,11 @@ def arima_learn_predict(training, testing, p, max_k, q):
     error = mean_squared_error(test, predictions)
     print('Test MSE: %.3f' % error)
     print("r2 score: ", r2_score(test, predictions))
-    print("AIC: ", AIC_finder(test, predictions,len(test), p, max_k, q))
-    return AIC_finder(test, predictions,len(test), p, max_k, q), error, r2_score(test, predictions), test, predictions
+    regr = OLS(test, predictions).fit()
+    our_aic = AIC_finder(test, predictions,len(test), p, max_k, q)
+    print("OLS AIC: ", regr.aic)
+    print("Our AIC: ", our_aic)
+    return regr.aic, our_aic, error, r2_score(test, predictions), test, predictions
 
 def integral_definer(df):
     values = df
@@ -230,11 +255,10 @@ training.reset_index(inplace=True)
 training['Date'] = pd.to_datetime(training['Date'])
 training_s = training.set_index('Date')
 
-stacked = plt.gca()
 
 training_decomposed = sdecomp(training_s, model = 'additive')
 training_decomposed.plot()
-plt.plot()
+plt.show()
 
 # Поиск порядка интегрируемости
 values =  training['Value'].to_numpy()
@@ -246,7 +270,7 @@ training = pd.read_excel('training.xlsx', header=0, parse_dates=[0], index_col=0
 testing = pd.read_excel('testing.xlsx', header=0, parse_dates=[0], index_col=0, squeeze=True)
 
 # Тут мы определяем параметры ARMA модели (p,q)
-# Для нашей модели надо проверить p = 0,1,2,3 и q = 0,1,2,3,4,5
+# Для нашей модели надо проверить p = 0,1,2 и q = 0,1,2,3,4
 plt.figure()
 plt.subplot(211)
 plot_acf(training_max_k, ax=plt.gca())
@@ -255,7 +279,7 @@ plot_pacf(training_max_k, ax=plt.gca())
 plt.show()
 
 # Модель обучается и предсказывает
-arima_optimizer_AIC(training, testing, 3, max_k, 5)
+arima_optimizer_AIC(training, testing, 1, 1, 4)
 
 #training_matrix = training.to_numpy()
 #print(training_matrix[0,0])
