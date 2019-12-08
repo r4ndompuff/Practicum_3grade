@@ -6,6 +6,7 @@ import matplotlib.pyplot as plt
 import statistics as st
 from math import factorial
 from statsmodels.tsa.adfvalues import mackinnonp, mackinnoncrit
+from statsmodels.compat.python import iteritems
 from statsmodels.graphics.tsaplots import plot_acf, plot_pacf
 from pandas import datetime, DataFrame
 from statsmodels.tsa.arima_model import ARIMA
@@ -39,7 +40,7 @@ def arima_optimizer_AIC(training, testing, p, max_k, q):
     print(testing)
     min_AIC = 99999
     min_p = 0
-    min_q = 0   
+    min_q = 0
     for i in range(p+1):
         for j in range(q+1):
             print("ARIMA(%d,%d,%d)" % (i, max_k, j))
@@ -122,6 +123,17 @@ def white_noise(df): #первые разности
     noise[0] = noise[1]
     return noise
 
+def get_lag(mod, endog, exog, startlag, maxlag, method, modargs = ()):
+    results = {} #dict
+    method = method.lower()
+    for lag in range(startlag, startlag + maxlag + 1):
+        #mod_instance = mod(endog, exog[:, :lag], *modargs) #в нашем случае это класс OLS (первый аргумент функции)
+        #results[lag] = mod_instance.fit()
+        results[lag] = mod(endog, exog[:, :lag], *modargs).fit()
+    if method == "aic":
+        icbest, bestlag = min((v.aic, k) for k, v in iteritems(results)) #перебор по значениям из results
+    return icbest, bestlag
+
 def df_test_old(df): #типа тест Дики-Фуллера, но на самом деле хуйня
     rows, columns = df.shape
     #print(rows)
@@ -163,7 +175,7 @@ def df_test(df):
 
     fullRHS = df_diff_all
     startlag = fullRHS.shape[1] - df_diff_all.shape[1] + 1 #начальный лаг
-    icbest, bestlag = sm.tsa.stattools._autolag(sm.OLS, df_diff_short, fullRHS, startlag, maxlag, autolag)
+    icbest, bestlag = get_lag(sm.OLS, df_diff_short, fullRHS, startlag, maxlag, autolag)
 
     bestlag -= startlag  #оптимальное значение лага
 
@@ -223,7 +235,7 @@ training = pd.read_excel('training.xlsx', header=0, parse_dates=[0], index_col=0
 testing = pd.read_excel('testing.xlsx', header=0, parse_dates=[0], index_col=0, squeeze=True)
 
 # Тут мы определяем параметры ARMA модели (p,q)
-# Для нашей модели надо проверить p = 0,1,2,3,4,5 и q = 0,1,2,3 
+# Для нашей модели надо проверить p = 0,1,2,3,4,5 и q = 0,1,2,3
 plt.figure()
 plt.subplot(211)
 plot_acf(training_max_k, ax=plt.gca())
