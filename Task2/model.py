@@ -5,6 +5,7 @@ import xlrd as xl
 import matplotlib.pyplot as plt
 import statistics as st
 from math import factorial
+from statsmodels.tsa.seasonal import seasonal_decompose as sdecomp
 from statsmodels.tsa.adfvalues import mackinnonp, mackinnoncrit
 from statsmodels.compat.python import iteritems
 from statsmodels.graphics.tsaplots import plot_acf, plot_pacf
@@ -206,8 +207,8 @@ def df_test(df):
 training = pd.read_excel('training.xlsx')
 #print(training.columns) #названия столбов
 
-training['Average'] = avg_data(training) #добавляем новый столбец в наш dataframe
-training['Noise'] = white_noise(training) #добавляем новый столбец в наш dataframe
+#training['Average'] = avg_data(training) #добавляем новый столбец в наш dataframe
+#training['Noise'] = white_noise(training) #добавляем новый столбец в наш dataframe
 
 #stacked = plt.gca() #2 plots 1 figure
 
@@ -224,6 +225,16 @@ print("Library test:")
 print(sm.tsa.adfuller(training['Value'])) #проверяем рабочесть нашего теста Дики-Фуллера на библиотечном
 
 print()
+
+training.reset_index(inplace=True)
+training['Date'] = pd.to_datetime(training['Date'])
+training_s = training.set_index('Date')
+
+stacked = plt.gca()
+
+training_decomposed = sdecomp(training_s, model = 'additive')
+training_decomposed.plot()
+plt.plot()
 
 # Поиск порядка интегрируемости
 values =  training['Value'].to_numpy()
