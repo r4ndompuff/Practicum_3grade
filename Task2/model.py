@@ -10,6 +10,7 @@ from statsmodels.graphics.tsaplots import plot_acf, plot_pacf
 from pandas import datetime, DataFrame
 from statsmodels.tsa.arima_model import ARIMA
 from sklearn.metrics import mean_squared_error
+from sklearn.metrics import r2_score
 
 def permutation(m, n):
     return factorial(n) / (factorial(n - m) * factorial(m))
@@ -17,23 +18,72 @@ def permutation(m, n):
 def diff_operator(set, k):
     size = len(set)
     sum = set[0] * (-1)**(size-1)
-    #print(set);
     for i in range(1, size):
         minus_counter = (-1)**(size-i-1)
-        #print("Minus: ", minus_counter)
-        #print("Koef: ", permutation(i,size-1))
-        #print("NUMB: ", set[i])
         sum = sum + permutation(i,size-1)*minus_counter*set[i]
-    #print("SUM: ", sum)
     return sum
+
+def AIC_finder(test, predict, k, p, counter, q):
+    if (counter > 0):
+        c = 0
+    n = p + q + c + 1
+    predict = np.array(predict)
+    ressid = test - predict.ravel()
+    sse = sum(ressid**2)
+    AIC = n*np.log(sse/n)+2*k
+    return AIC
+
+def arima_optimizer_AIC(training, testing, p, max_k, q):
+    print(training)
+    print()
+    print(testing)
+    min_AIC = 99999
+    min_p = 0
+    min_q = 0   
+    for i in range(p+1):
+        for j in range(q+1):
+            print("ARIMA(%d,%d,%d)" % (i, max_k, j))
+            AIC, error, r2_score, test, predict = arima_learn_predict(training, testing, i, max_k, j)
+            if (AIC < min_AIC):
+                min_AIC = AIC
+                min_test = test
+                min_predict = predict
+                min_p = i
+                min_q = j
+    print("ARIMA = ARIMA(%d,%d,%d)" % (min_p, max_k, min_q))
+    print("Minimal AIC = ", min_AIC)
+    print('Test MSE: %.3f' % error)
+    print("r2 score: ", r2_score)
+    plt.plot(test)
+    plt.plot(predict, color='red')
+    plt.show()
+
+def arima_learn_predict(training, testing, p, max_k, q):
+    size = int(len(training.values))
+    train, test = training.values, testing.values
+    history = [x for x in train]
+    predictions = list()
+    for t in range(len(test)):
+        model = ARIMA(history, order=(5,max_k,1))
+        model_fit = model.fit(disp=0)
+        output = model_fit.forecast()
+        yhat = output[0]
+        predictions.append(yhat)
+        obs = test[t]
+        history.append(obs)
+        print('predicted=%f, expected=%f' % (yhat, obs))
+    error = mean_squared_error(test, predictions)
+    print('Test MSE: %.3f' % error)
+    print("r2 score: ", r2_score(test, predictions))
+    print("AIC: ", AIC_finder(test, predictions,len(test), p, max_k, q))
+    return AIC_finder(test, predictions,len(test), p, max_k, q), error, r2_score(test, predictions), test, predictions
 
 def integral_definer(df):
     values = df
     oper_values = np.array([0]).astype(float)
-    counter = 0;
-    flag = 0;
-    max_k = 0;
-    #print(sm.tsa.adfuller(oper_values))
+    counter = 0
+    flag = 0
+    max_k = 0
     for k in range(1,len(values)):
         if flag:
                 continue;
@@ -41,14 +91,14 @@ def integral_definer(df):
             if ((i-k-1) >= 0):
                 oper_values = np.append(oper_values, 0)
                 oper_values[i-1] = diff_operator(values[i-k-1:i], k)
-
         oper_values_cutted = oper_values[k:len(oper_values)+(1-k)*(len(values)-k) + counter]
         counter = counter - (k-1)
         print(k, " test: ")
         if df_test(oper_values_cutted):
-            flag = 1;
-            max_k = k;
-    return max_k
+            flag = 1
+            max_k = k
+            ans = oper_values_cutted;
+    return max_k, ans
 
 def avg_data(df): #скользящая средняя
     rows, columns = df.shape
@@ -139,7 +189,6 @@ def df_test(df):
         return False
 
 # MAIN
-
 # страница 54 и далее (отмена, не читайте эту парашу)
 
 training = pd.read_excel('training.xlsx')
@@ -166,50 +215,24 @@ print()
 
 # Поиск порядка интегрируемости
 values =  training['Value'].to_numpy()
-print("Порядок интегрируемости: ", integral_definer(values))
+max_k, training_max_k = integral_definer(values)
+print("Порядок интегрируемости: ", max_k)
 
-training = pd.read_excel('testing.xlsx', header=0, parse_dates=[0], index_col=0, squeeze=True)
-# fit model
-model = ARIMA(training, order=(5,1,0))
-model_fit = model.fit(disp=0)
-print(model_fit.summary())
-# plot residual errors
-residuals = DataFrame(model_fit.resid)
-residuals.plot()
-plt.show()
-residuals.plot(kind='kde')
-plt.show()
-print(residuals.describe())
-
-# Обученная модель предсказывает
+# Ввод необходимый для работы ARIMA
+training = pd.read_excel('training.xlsx', header=0, parse_dates=[0], index_col=0, squeeze=True)
 testing = pd.read_excel('testing.xlsx', header=0, parse_dates=[0], index_col=0, squeeze=True)
-X = testing.values
-size = int(len(X) * 0.66)
-train, test = X[0:size], X[size:len(X)]
-history = [x for x in train]
-predictions = list()
-for t in range(len(test)):
-    model = ARIMA(history, order=(5,1,0))
-    model_fit = model.fit(disp=0)
-    output = model_fit.forecast()
-    yhat = output[0]
-    predictions.append(yhat)
-    obs = test[t]
-    history.append(obs)
-    print('predicted=%f, expected=%f' % (yhat, obs))
-error = mean_squared_error(test, predictions)
-print('Test MSE: %.3f' % error)
-# plot
-plt.plot(test)
-plt.plot(predictions, color='red')
+
+# Тут мы определяем параметры ARMA модели (p,q)
+# Для нашей модели надо проверить p = 0,1,2,3,4,5 и q = 0,1,2,3 
+plt.figure()
+plt.subplot(211)
+plot_acf(training_max_k, ax=plt.gca())
+plt.subplot(212)
+plot_pacf(training_max_k, ax=plt.gca())
 plt.show()
 
-#training1.plot()
-#plt.show()
-
-#plot_acf(training1, lags=50)
-#plot_pacf(training1, lags=50)
-#plt.show()
+# Модель обучается и предсказывает
+arima_optimizer_AIC(training, testing, 5, max_k, 3)
 
 #training_matrix = training.to_numpy()
 #print(training_matrix[0,0])
