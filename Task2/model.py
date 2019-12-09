@@ -240,7 +240,7 @@ resid = [training['Average'][0]]
 training['Noise'] = white_noise(training) #добавляем новый столбец в наш dataframe
 for i in range(1, len(training['Average'])):
     resid.append(training['Average'][i] - training['Average'][i - 1] - training['Noise'][i])
-
+resid[0] = resid[1]
 #training['Residual'] = training['Value'] - training['Average'] - training['Noise'] #добавляем новый столбец в наш dataframe
 training['Residual'] = resid #добавляем новый столбец в наш dataframe
 
@@ -248,7 +248,7 @@ training['Residual'] = resid #добавляем новый столбец в н
 sns.set()
 plt.figure(num = 'Decomposed')
 stacked = plt.gca() #2 plots 1 figure
-#training.plot(kind='line',x='Date',y='Value',ax=stacked)
+training.plot(kind='line',x='Date',y='Value',ax=stacked)
 #plt.subplot(211)
 training.plot(kind='line',x='Date',y='Average',color='green',ax=stacked)
 #plt.subplot(212)
