@@ -83,7 +83,7 @@ def arima_optimizer_AIC(training, testing, p, max_k, q):
 
 def arima_learn_predict(training, testing, p, max_k, q):
     warnings.simplefilter('ignore')
-    X = training.values
+    x = training.values
     size = int(len(training.values))
     train, test = training.values, testing.values
     history = [x for x in train]
