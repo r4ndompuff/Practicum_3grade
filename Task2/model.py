@@ -77,12 +77,13 @@ def arima_optimizer_AIC(training, testing, p, max_k, q):
     print("Minimal SSE AIC = ", min_our_AIC)
     print('Test MSE: %.3f' % error_our)
     print("r2 score: ", r2_score_our)
-    plt.plot(test)
-    plt.plot(predict, color='red')
+    plt.plot(min_test_lib)
+    plt.plot(min_predict_lib, color='red')
     plt.show()
 
 def arima_learn_predict(training, testing, p, max_k, q):
     warnings.simplefilter('ignore')
+    X = training.values
     size = int(len(training.values))
     train, test = training.values, testing.values
     history = [x for x in train]
