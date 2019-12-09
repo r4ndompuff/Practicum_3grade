@@ -4,6 +4,7 @@ import statsmodels.api as sm
 import xlrd as xl
 import matplotlib.pyplot as plt
 import statistics as st
+import seaborn as sns
 from math import factorial
 from statsmodels.tsa.seasonal import seasonal_decompose as sdecomp
 from statsmodels.tsa.adfvalues import mackinnonp, mackinnoncrit
@@ -231,17 +232,29 @@ def df_test(df):
 # страница 54 и далее (отмена, не читайте эту парашу)
 
 training = pd.read_excel('training.xlsx')
-#print(training.columns) #названия столбов
+training_decomp = pd.read_excel('training.xlsx')
+print(training.columns) #названия столбов
 
-#training['Average'] = avg_data(training) #добавляем новый столбец в наш dataframe
-#training['Noise'] = white_noise(training) #добавляем новый столбец в наш dataframe
+training['Average'] = avg_data(training) #добавляем новый столбец в наш dataframe
+resid = [training['Average'][0]]
+training['Noise'] = white_noise(training) #добавляем новый столбец в наш dataframe
+for i in range(1, len(training['Average'])):
+    resid.append(training['Average'][i] - training['Average'][i - 1] - training['Noise'][i])
 
-#stacked = plt.gca() #2 plots 1 figure
+#training['Residual'] = training['Value'] - training['Average'] - training['Noise'] #добавляем новый столбец в наш dataframe
+training['Residual'] = resid #добавляем новый столбец в наш dataframe
 
+
+sns.set()
+plt.figure(num = 'Decomposed')
+stacked = plt.gca() #2 plots 1 figure
 #training.plot(kind='line',x='Date',y='Value',ax=stacked)
-#training.plot(kind='line',x='Date',y='Average',color='green',ax=stacked)
-#training.plot(kind='line',x='Date',y='Noise',color='purple',ax=stacked)
-#plt.show()
+#plt.subplot(211)
+training.plot(kind='line',x='Date',y='Average',color='green',ax=stacked)
+#plt.subplot(212)
+training.plot(kind='line',x='Date',y='Noise',color='purple',ax=stacked)
+training.plot(kind='line',x='Date',y='Residual',color='orange',ax=stacked)
+plt.show()
 
 print("Our test:")
 #print(df_test(training))
@@ -252,11 +265,12 @@ print(sm.tsa.adfuller(training['Value'])) #проверяем рабочесть
 
 print()
 
-training.reset_index(inplace=True)
-training['Date'] = pd.to_datetime(training['Date'])
-training_s = training.set_index('Date')
+training_decomp.reset_index(inplace=True)
+training_decomp['Date'] = pd.to_datetime(training['Date'])
+training_s = training_decomp.set_index('Date')
 
 
+sns.set()
 training_decomposed = sdecomp(training_s, model = 'additive')
 training_decomposed.plot()
 plt.show()
