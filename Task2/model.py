@@ -159,6 +159,7 @@ def best_train_finder(training, p, max_k, q):
         print('predicted=%f, expected=%f' % (yhat, obs))
     error = mean_squared_error(test, predictions)
     print('Test MSE: %.3f' % error)
+    print("r2 score: ", r2_score(test, predictions))
     # plot
     plt.plot(test)
     plt.plot(predictions, color='red')
@@ -351,7 +352,7 @@ plot_pacf(training_max_k, ax=plt.gca())
 plt.show()
 
 # Модель обучается и предсказывает
-best_train_finder(training, 5, max_k, 1)
+best_train_finder(training, 1, max_k, 4)
 arima_optimizer_AIC(training, testing, 1, 1, 4, 1)
 
 #training_matrix = training.to_numpy()
