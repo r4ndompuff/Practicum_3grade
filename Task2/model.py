@@ -304,24 +304,8 @@ def series_decompose_sum(df, window): # разложение через адди
     sea_son = df.Season1
     residual = df.Value - avg - season
 
-    sns.set()
-    overlay = plt.gca()
-    avg.plot(color='purple',ax=overlay)
-    sea_son.plot(color='orange',ax=overlay)
-    residual.plot(color='green',ax=overlay)
-    #fig, axes  = plt.subplots(3, 1, sharey=False, sharex=False)
-    #fig.set_figwidth(16)
-    #fig.set_figheight(12)
-    #axes[0][0].plot(df.Date, avg, label='Trend')
-    #axes[0][0].set_title("Time series trend")
+    return avg, sea_son, residual
 
-    #axes[1][0].plot(df.Date, season, label='Trend')
-    #axes[1][0].set_title("Time series trend")
-
-    #axes[2][0].plot(df.Date, residual, label='Trend')
-    #axes[2][0].set_title("Time series trend")
-
-    plt.show()
 
 def series_decompose_mul(df, window): # разложение через мультипликативную модель
     #avg = df.Average # trend
@@ -335,24 +319,8 @@ def series_decompose_mul(df, window): # разложение через муль
     sea_son = df.Season2
     residual = df.Value - avg - season
 
-    sns.set()
-    overlay = plt.gca()
-    avg.plot(color='purple',ax=overlay)
-    sea_son.plot(color='orange',ax=overlay)
-    residual.plot(color='green',ax=overlay)
-    #fig, axes  = plt.subplots(3, 1, sharey=False, sharex=False)
-    #fig.set_figwidth(16)
-    #fig.set_figheight(12)
-    #axes[0][0].plot(df.Date, avg, label='Trend')
-    #axes[0][0].set_title("Time series trend")
-
-    #axes[1][0].plot(df.Date, season, label='Trend')
-    #axes[1][0].set_title("Time series trend")
-
-    #axes[2][0].plot(df.Date, residual, label='Trend')
-    #axes[2][0].set_title("Time series trend")
-
-    plt.show()
+    return avg, sea_son, residual
+	
 
 # MAIN
 # страница 54 и далее (отмена, не читайте эту )
@@ -370,22 +338,27 @@ resid[0] = resid[1]
 #training['Residual'] = training['Value'] - training['Average'] - training['Noise'] #добавляем новый столбец в наш dataframe
 training['Residual'] = resid #добавляем новый столбец в наш dataframe
 
-series_decompose_sum(training, 30)
-series_decompose_mul(training, 30)
+decomp_avg_add, decomp_season_add, decomp_resid_add = series_decompose_sum(training, 30)
+decomp_avg_mult, decomp_season_mult, decomp_resid_mult = series_decompose_mul(training, 30)
 
-#fig = plt.figure(figsize = (10,10), num = 'Decomposed')
+fig = plt.figure(figsize = (20,10), num = 'Additive/Mutliplicative model')
 
-#ax1 = fig.add_subplot(411)
-#ax2 = fig.add_subplot(412)
-#ax3 = fig.add_subplot(413)
-#ax4 = fig.add_subplot(414)
 
-#sns.lineplot(x='Date',y='Value',data = training, ax=ax1)
-#sns.lineplot(x='Date',y='Average',data = training, ax=ax2)
-#sns.lineplot(x='Date',y='Noise',data = training, ax=ax3)
-#sns.lineplot(x='Date',y='Residual',data = training ,ax=ax4)
+ax1 = fig.add_subplot(321)
+ax2 = fig.add_subplot(322)
+ax3 = fig.add_subplot(323)
+ax4 = fig.add_subplot(324)
+ax5 = fig.add_subplot(325)
+ax6 = fig.add_subplot(326)
 
-#plt.show()
+sns.lineplot(data = decomp_avg_add, ax=ax1)
+sns.lineplot(data = decomp_season_add, ax=ax3)
+sns.lineplot(data = decomp_resid_add, ax=ax5)
+sns.lineplot(data = decomp_avg_mult, ax=ax2)
+sns.lineplot(data = decomp_season_mult, ax=ax4)
+sns.lineplot(data = decomp_resid_mult, ax=ax6)
+
+plt.show()
 
 print("Our test:")
 #print(df_test(training))
