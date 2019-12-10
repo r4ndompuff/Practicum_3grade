@@ -14,6 +14,7 @@ from statsmodels.graphics.tsaplots import plot_acf, plot_pacf
 from statsmodels.regression.linear_model import OLS
 from statsmodels.tools import add_constant
 from pandas import datetime, DataFrame
+from pandas.core.nanops import nanmean as pd_nanmean
 from statsmodels.tsa.arima_model import ARIMA
 from sklearn.metrics import mean_squared_error
 from sklearn.metrics import r2_score
@@ -221,7 +222,7 @@ def get_lag(mod, endog, exog, start_lag, max_lag, method, model_args = ()):
         best_inf_crit, best_lag = min((v.aic, k) for k, v in iteritems(results)) #перебор по значениям из results
     return best_inf_crit, best_lag
 
-def df_test_old(df): #типа тест Дики-Фуллера, но на самом деле 
+def df_test_old(df): #типа тест Дики-Фуллера, но на самом деле
     rows, columns = df.shape
     #print(rows)
     #values_avg = np.average(df['Value'].to_numpy())
@@ -287,6 +288,72 @@ def df_test(df):
         print("Time series is not stationary with crit value ", adfstat)
         return False
 
+def series_seasonal(df, window):
+    seasonal = np.array([pd_nanmean(df[i::window], axis=0) for i in range(window)])
+    return seasonal
+
+def series_decompose_sum(df, window): # разложение через аддитивную модель
+    #avg = df.Average # trend
+    avg = df.Value.rolling(window = 30).mean() # trend, но по-другому
+    no_trend = df.Value - avg
+    seasonal = series_seasonal(no_trend, 30)
+    seasonal = seasonal - np.mean(seasonal, axis = 0)
+    size = no_trend.shape[0]
+    season = np.tile(seasonal.T, size // window + 1).T[:size] #window = 30
+    df['Season1'] = season
+    sea_son = df.Season1
+    residual = df.Value - avg - season
+
+    sns.set()
+    overlay = plt.gca()
+    avg.plot(color='purple',ax=overlay)
+    sea_son.plot(color='orange',ax=overlay)
+    residual.plot(color='green',ax=overlay)
+    #fig, axes  = plt.subplots(3, 1, sharey=False, sharex=False)
+    #fig.set_figwidth(16)
+    #fig.set_figheight(12)
+    #axes[0][0].plot(df.Date, avg, label='Trend')
+    #axes[0][0].set_title("Time series trend")
+
+    #axes[1][0].plot(df.Date, season, label='Trend')
+    #axes[1][0].set_title("Time series trend")
+
+    #axes[2][0].plot(df.Date, residual, label='Trend')
+    #axes[2][0].set_title("Time series trend")
+
+    plt.show()
+
+def series_decompose_mul(df, window): # разложение через мультипликативную модель
+    #avg = df.Average # trend
+    avg = df.Value.rolling(window = 30).mean() # trend, но по-другому
+    no_trend = df.Value/avg
+    seasonal = series_seasonal(no_trend, 30)
+    seasonal = seasonal - np.mean(seasonal, axis = 0)
+    size = no_trend.shape[0]
+    season = np.tile(seasonal.T, size // window + 1).T[:size] #window = 30
+    df['Season2'] = season
+    sea_son = df.Season2
+    residual = df.Value - avg - season
+
+    sns.set()
+    overlay = plt.gca()
+    avg.plot(color='purple',ax=overlay)
+    sea_son.plot(color='orange',ax=overlay)
+    residual.plot(color='green',ax=overlay)
+    #fig, axes  = plt.subplots(3, 1, sharey=False, sharex=False)
+    #fig.set_figwidth(16)
+    #fig.set_figheight(12)
+    #axes[0][0].plot(df.Date, avg, label='Trend')
+    #axes[0][0].set_title("Time series trend")
+
+    #axes[1][0].plot(df.Date, season, label='Trend')
+    #axes[1][0].set_title("Time series trend")
+
+    #axes[2][0].plot(df.Date, residual, label='Trend')
+    #axes[2][0].set_title("Time series trend")
+
+    plt.show()
+
 # MAIN
 # страница 54 и далее (отмена, не читайте эту )
 
@@ -303,21 +370,22 @@ resid[0] = resid[1]
 #training['Residual'] = training['Value'] - training['Average'] - training['Noise'] #добавляем новый столбец в наш dataframe
 training['Residual'] = resid #добавляем новый столбец в наш dataframe
 
+series_decompose_sum(training, 30)
+series_decompose_mul(training, 30)
 
+#fig = plt.figure(figsize = (10,10), num = 'Decomposed')
 
-fig = plt.figure(figsize = (10,10), num = 'Decomposed')
+#ax1 = fig.add_subplot(411)
+#ax2 = fig.add_subplot(412)
+#ax3 = fig.add_subplot(413)
+#ax4 = fig.add_subplot(414)
 
-ax1 = fig.add_subplot(411)
-ax2 = fig.add_subplot(412)
-ax3 = fig.add_subplot(413)
-ax4 = fig.add_subplot(414)
+#sns.lineplot(x='Date',y='Value',data = training, ax=ax1)
+#sns.lineplot(x='Date',y='Average',data = training, ax=ax2)
+#sns.lineplot(x='Date',y='Noise',data = training, ax=ax3)
+#sns.lineplot(x='Date',y='Residual',data = training ,ax=ax4)
 
-sns.lineplot(x='Date',y='Value',data = training, ax=ax1)
-sns.lineplot(x='Date',y='Average',data = training, ax=ax2)
-sns.lineplot(x='Date',y='Noise',data = training, ax=ax3)
-sns.lineplot(x='Date',y='Residual',data = training ,ax=ax4)
-
-plt.show()
+#plt.show()
 
 print("Our test:")
 #print(df_test(training))
