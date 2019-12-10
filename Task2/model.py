@@ -242,20 +242,6 @@ def get_lag(mod, endog, exog, start_lag, max_lag, method, model_args=()):
             results))  # перебор по значениям из results
     return best_inf_crit, best_lag
 
-
-def df_test_old(df):  # типа тест Дики-Фуллера
-    rows, columns = df.shape
-    avg = np.average(df['Value'].to_numpy())  # среднее зачение
-    mode = st.mode(df['Value'])  # мода
-    sigma = 0  # сигма (в квадрате) из формулы
-    for i in range(rows):
-        sigma = sigma + (df['Value'][i] - avg)**2
-    sigma = sigma/(rows - 1)
-    sigma = sigma**(1/2)
-    t = (avg - mode)/(sigma*(rows**(1/2)))  # сама формула
-    return t
-
-
 def df_test(df):
     df_vect = df
     df_size = len(df_vect)
@@ -359,14 +345,12 @@ decomp_avg_mult, decomp_season_mult, decomp_resid_mult = series_decompose_mul(
 
 # Рисуем красивые графики
 fig = plt.figure(figsize=(20, 10), num='Time Series Decomposition')
-
 ax1 = fig.add_subplot(321, title="Additive model", ylabel="Trend")
 ax2 = fig.add_subplot(322, title="Multiplicative model")
 ax3 = fig.add_subplot(323, ylabel="Season")
 ax4 = fig.add_subplot(324)
 ax5 = fig.add_subplot(325, ylabel="Residue")
 ax6 = fig.add_subplot(326)
-
 sns.lineplot(data=decomp_avg_add, ax=ax1)
 sns.lineplot(data=decomp_season_add, ax=ax3)
 sns.lineplot(data=decomp_resid_add, ax=ax5)
