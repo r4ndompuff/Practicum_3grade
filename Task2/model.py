@@ -5,6 +5,7 @@ import xlrd as xl
 import matplotlib.pyplot as plt
 import statistics as st
 import seaborn as sns
+sns.set(style = "darkgrid")
 from math import factorial
 from statsmodels.tsa.seasonal import seasonal_decompose as sdecomp
 from statsmodels.tsa.adfvalues import mackinnonp, mackinnoncrit
@@ -220,7 +221,7 @@ def get_lag(mod, endog, exog, start_lag, max_lag, method, model_args = ()):
         best_inf_crit, best_lag = min((v.aic, k) for k, v in iteritems(results)) #перебор по значениям из results
     return best_inf_crit, best_lag
 
-def df_test_old(df): #типа тест Дики-Фуллера, но на самом деле хуйня
+def df_test_old(df): #типа тест Дики-Фуллера, но на самом деле 
     rows, columns = df.shape
     #print(rows)
     #values_avg = np.average(df['Value'].to_numpy())
@@ -287,7 +288,7 @@ def df_test(df):
         return False
 
 # MAIN
-# страница 54 и далее (отмена, не читайте эту парашу)
+# страница 54 и далее (отмена, не читайте эту )
 
 training = pd.read_excel('training.xlsx')
 training_decomp = pd.read_excel('training.xlsx')
@@ -303,15 +304,19 @@ resid[0] = resid[1]
 training['Residual'] = resid #добавляем новый столбец в наш dataframe
 
 
-sns.set()
-plt.figure(num = 'Decomposed')
-stacked = plt.gca() #2 plots 1 figure
-training.plot(kind='line',x='Date',y='Value',ax=stacked)
-#plt.subplot(211)
-training.plot(kind='line',x='Date',y='Average',color='green',ax=stacked)
-#plt.subplot(212)
-training.plot(kind='line',x='Date',y='Noise',color='purple',ax=stacked)
-training.plot(kind='line',x='Date',y='Residual',color='orange',ax=stacked)
+
+fig = plt.figure(figsize = (15,15), num = 'Decomposed')
+
+ax1 = fig.add_subplot(411)
+ax2 = fig.add_subplot(412)
+ax3 = fig.add_subplot(413)
+ax4 = fig.add_subplot(414)
+
+sns.lineplot(x='Date',y='Value',data = training, ax=ax1)
+sns.lineplot(x='Date',y='Average',data = training, ax=ax2)
+sns.lineplot(x='Date',y='Noise',data = training, ax=ax3)
+sns.lineplot(x='Date',y='Residual',data = training ,ax=ax4)
+
 plt.show()
 
 print("Our test:")
@@ -322,16 +327,6 @@ print("Library test:")
 print(sm.tsa.adfuller(training['Value'])) #проверяем рабочесть нашего теста Дики-Фуллера на библиотечном
 
 print()
-
-training_decomp.reset_index(inplace=True)
-training_decomp['Date'] = pd.to_datetime(training['Date'])
-training_s = training_decomp.set_index('Date')
-
-
-sns.set()
-training_decomposed = sdecomp(training_s, model = 'additive')
-training_decomposed.plot()
-plt.show()
 
 # Поиск порядка интегрируемости
 values =  training['Value'].to_numpy()
@@ -344,7 +339,7 @@ testing = pd.read_excel('testing.xlsx', header=0, parse_dates=[0], index_col=0, 
 
 # Тут мы определяем параметры ARMA модели (p,q)
 # Для нашей модели надо проверить p = 0,1,2 и q = 0,1,2,3,4
-plt.figure()
+plt.figure(figsize = (8,8))
 plt.subplot(211)
 plot_acf(training_max_k, ax=plt.gca())
 plt.subplot(212)
