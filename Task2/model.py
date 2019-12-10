@@ -305,7 +305,7 @@ training['Residual'] = resid #добавляем новый столбец в н
 
 
 
-fig = plt.figure(figsize = (15,15), num = 'Decomposed')
+fig = plt.figure(figsize = (10,10), num = 'Decomposed')
 
 ax1 = fig.add_subplot(411)
 ax2 = fig.add_subplot(412)
