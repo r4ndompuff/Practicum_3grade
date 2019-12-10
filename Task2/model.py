@@ -341,14 +341,14 @@ training['Residual'] = resid #добавляем новый столбец в н
 decomp_avg_add, decomp_season_add, decomp_resid_add = series_decompose_sum(training, 30)
 decomp_avg_mult, decomp_season_mult, decomp_resid_mult = series_decompose_mul(training, 30)
 
-fig = plt.figure(figsize = (20,10), num = 'Additive/Mutliplicative model')
+fig = plt.figure(figsize = (20,10), num = 'Time Series Decomposition')
 
 
-ax1 = fig.add_subplot(321)
-ax2 = fig.add_subplot(322)
-ax3 = fig.add_subplot(323)
+ax1 = fig.add_subplot(321, title = "Additive model", ylabel = "Trend")
+ax2 = fig.add_subplot(322, title = "Multiplicative model")
+ax3 = fig.add_subplot(323, ylabel = "Season")
 ax4 = fig.add_subplot(324)
-ax5 = fig.add_subplot(325)
+ax5 = fig.add_subplot(325, ylabel = "Residue")
 ax6 = fig.add_subplot(326)
 
 sns.lineplot(data = decomp_avg_add, ax=ax1)
