@@ -16,6 +16,7 @@ from pandas import datetime, DataFrame
 from statsmodels.tsa.arima_model import ARIMA
 from sklearn.metrics import mean_squared_error
 from sklearn.metrics import r2_score
+from statsmodels.tools import add_constant
 import warnings
 
 def permutation(m, n):
@@ -41,7 +42,7 @@ def AIC_finder(test, predict, k, p, counter, q):
     AIC = n*np.log(sse/n)+2*k
     return AIC
 
-def arima_optimizer_AIC(training, testing, p, max_k, q):
+def arima_optimizer_AIC(training, testing, p, max_k, q, flag):
     print(training)
     print()
     print(testing)
@@ -51,7 +52,10 @@ def arima_optimizer_AIC(training, testing, p, max_k, q):
     for i in range(p+1):
         for j in range(q+1):
             print("ARIMA(%d,%d,%d)" % (i, max_k, j))
-            AIC_lib, our_AIC, error, r2_score, test, predict = arima_learn_predict(training, testing, i, max_k, j)
+            if flag == 0:
+                AIC_lib, our_AIC, error, r2_score, test, predict = arima_learn_forecast(training, testing, i, max_k, j)
+            else:
+                AIC_lib, our_AIC, error, r2_score, test, predict = arima_learn_predict(training, testing, i, max_k, j)
             if (AIC_lib < min_AIC_lib):
                 min_AIC_lib = AIC_lib
                 min_test_lib = test
@@ -79,10 +83,14 @@ def arima_optimizer_AIC(training, testing, p, max_k, q):
     print('Test MSE: %.3f' % error_our)
     print("r2 score: ", r2_score_our)
     plt.plot(min_test_lib)
-    plt.plot(min_predict_lib, color='red')
+    if (flag == 1):
+        x = range(360, 360+len(min_predict_lib))
+        plt.plot(x, min_predict_lib, color='red')
+    else:
+        plt.plot(min_predict_lib, color='red')
     plt.show()
 
-def arima_learn_predict(training, testing, p, max_k, q):
+def arima_learn_forecast(training, testing, p, max_k, q):
     warnings.simplefilter('ignore')
     x = training.values
     size = int(len(training.values))
@@ -106,6 +114,55 @@ def arima_learn_predict(training, testing, p, max_k, q):
     print("OLS AIC: ", regr.aic)
     print("Our AIC: ", our_aic)
     return regr.aic, our_aic, error, r2_score(test, predictions), test, predictions
+
+def arima_learn_predict(training, testing, p, max_k, q):
+    warnings.simplefilter('ignore')
+    x = training.values
+    size = int(len(training.values))
+    train, test = training.values, testing.values
+    history = [x for x in train]
+    predictions = list()
+    for t in range(len(test)):
+        model = ARIMA(history, order=(p,max_k,q))
+        model_fit = model.fit(disp=0)
+        output = model_fit.predict(start = len(train), end = (len(train)+len(test)-1), typ='levels')
+        yhat = output[0]
+        predictions.append(yhat)
+        obs = test[t]
+        history.append(yhat)
+        print('predicted=%f, expected=%f' % (yhat, obs))
+    error = mean_squared_error(test, predictions)
+    print('Test MSE: %.3f' % error)
+    print("r2 score: ", r2_score(test, predictions))
+    x = range(len(train), len(train)+len(test))
+    print(len(x), len(train))
+    regr = OLS(test, predictions).fit()
+    our_aic = AIC_finder(test, predictions,len(test), p, max_k, q)
+    print("OLS AIC: ", regr.aic)
+    print("Our AIC: ", our_aic)
+    return regr.aic, our_aic, error, r2_score(test, predictions), np.append(train, test), predictions
+
+def best_train_finder(training, p, max_k, q):
+    X = training.values
+    size = int(len(X) * 0.1)
+    train, test = X[0:size], X[size:len(X)]
+    history = [x for x in train]
+    predictions = list()
+    for t in range(len(test)):
+        model = ARIMA(history, order=(5,1,0))
+        model_fit = model.fit(disp=0)
+        output = model_fit.forecast()
+        yhat = output[0]
+        predictions.append(yhat)
+        obs = test[t]
+        history.append(obs)
+        print('predicted=%f, expected=%f' % (yhat, obs))
+    error = mean_squared_error(test, predictions)
+    print('Test MSE: %.3f' % error)
+    # plot
+    plt.plot(test)
+    plt.plot(predictions, color='red')
+    plt.show()
 
 def integral_definer(df):
     values = df
@@ -294,7 +351,8 @@ plot_pacf(training_max_k, ax=plt.gca())
 plt.show()
 
 # Модель обучается и предсказывает
-arima_optimizer_AIC(training, testing, 1, 1, 4)
+best_train_finder(training, 5, max_k, 1)
+arima_optimizer_AIC(training, testing, 1, 1, 4, 1)
 
 #training_matrix = training.to_numpy()
 #print(training_matrix[0,0])
