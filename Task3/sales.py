@@ -6,21 +6,19 @@ def daily(store_name):
     goods_recieved = pd.read_csv(source_path + store_name + supply)
     goods_sold = pd.read_csv(source_path + store_name + sell)
     daily_stats = pd.DataFrame({'date' : [dt.date(2006, 1, 1)], 'apple': [0], 'pen': [0]})
-    #daily_stats_sold = pd.DataFrame({'date' : [dt.date(2006, 1, 1)], 'apple': [0], 'pen': [0]})
     daily_stats['apple_sold'] = [0]
     daily_stats['pen_sold'] = [0]
     daily_stats.reset_index()
     pens = apples = 0
-    index = 0 #столбец date сделать индексом потом
-    index_income = 0 #для поставок
+    index = 0
+    index_income = 0
     current_date = dt.date(2006, 1, 1)
-    #в этом блоке считаем дневные продажи яблок и ручек
     for i in range(len(goods_sold['date']) - 1):
         if (index_income < len(goods_recieved['date'])) and (goods_recieved['date'][index_income] == goods_sold['date'][i]):
             daily_stats.loc[index, 'apple'] += goods_recieved['apple'][index_income]
             daily_stats.loc[index, 'pen'] += goods_recieved['pen'][index_income]
-            print("Recieved apples ",goods_recieved['apple'][index_income])
-            print("Recieved pens ",goods_recieved['pen'][index_income])
+            #print("Recieved apples ",goods_recieved['apple'][index_income])
+            #print("Recieved pens ",goods_recieved['pen'][index_income])
             index_income += 1
         if goods_sold['sku_num'][i].find("-ap-") != -1:
             apples += 1
@@ -37,7 +35,7 @@ def daily(store_name):
             apples = 0
             pens = 0
             daily_stats.loc[index] = [current_date, daily_stats['apple'][index - 1], daily_stats['pen'][index -1], daily_stats['apple_sold'][index - 1], daily_stats['pen_sold'][index - 1]]
-        print("Step ", i)
+    print("> Daily stats are ready")
     i = len(goods_sold['date']) - 1
     if goods_sold['sku_num'][i].find("-ap-") != -1:
         apples += 1
@@ -48,10 +46,10 @@ def daily(store_name):
     daily_stats_sold = daily_stats.copy()
     daily_stats_sold.drop(['apple', 'pen'], axis = 'columns', inplace = True)
     daily_stats.drop(['apple_sold', 'pen_sold'], axis = 'columns', inplace = True)
-    #daily_stats.drop([index], inplace = True)
     daily_stats.set_index('date', inplace = True)
     print(daily_stats)
     daily_stats.to_csv(out_path + store_name + "-daily.csv")
+    print("> Saved daily stats")
     return daily_stats_sold
 
 def stolen(store_name):
@@ -62,37 +60,29 @@ def stolen(store_name):
     total_stolen_apple = total_stolen_pen = 0
     for i in range(len(daily_stats['date'])):
         if (index < len(monthly_inventory['date'])) and (daily_stats['date'][i] == monthly_inventory['date'][index]):
-            #print(total_stolen_apple, total_stolen_pen, daily_stats['apple'][i], daily_stats['pen'][i], monthly_inventory['apple'][index], monthly_inventory['pen'][index])
             monthly_stolen.loc[index, 'date'] = daily_stats['date'][i] #трабл где-то дальше
             monthly_stolen.loc[index, 'apple'] = daily_stats['apple'][i] - monthly_inventory['apple'][index] - total_stolen_apple
             monthly_stolen.loc[index, 'pen'] = daily_stats['pen'][i] - monthly_inventory['pen'][index] - total_stolen_pen
-            print(type(monthly_stolen['date'][index])) #здесь уже стр......
             total_stolen_apple = total_stolen_apple + monthly_stolen['apple'][index]
             total_stolen_pen = total_stolen_pen + monthly_stolen['pen'][index]
             index += 1
             monthly_stolen.loc[index] = [monthly_stolen['date'][index - 1], 0, 0]
-        #print("Step ", i)
-    #print(type(monthly_stolen['date'][0])) #в этом дефе пофиксить трабл с тайпами у датыы
     monthly_stolen.drop([index], inplace = True)
     monthly_stolen.set_index('date', inplace = True)
+    print("> Stolen stats are ready")
     print(monthly_stolen)
-    #monthly_stolen.reset_index() #ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
-
     monthly_stolen.to_csv(out_path + store_name + "-steal.csv")
+    print("> Saved stolen stats")
 
 def yearly(store_name, sales_info):
     monthly_stolen = pd.read_csv(out_path + store_name + "-steal.csv")
     index_yearly = index_stolen = 0
     yearly_sold_apples = yearly_sold_pens = yearly_stolen_apples = yearly_stolen_pens = 0
     date_point = sales_info['date'][0]
-    #print(monthly_stolen)
-    #pd.to_datetime(monthly_stolen['date'])
-
     yearly_stats = pd.DataFrame({'year' : [dt.date(2006, 1, 1).strftime("%Y")], 'state' : ["MS"], 'apple_sold' : [0], 'apple_stolen' : [0], 'pen_sold' : [0], 'pen_stolen' : [0]})
     for i in range(len(sales_info['date']) - 1):
         yearly_sold_apples += sales_info['apple_sold'][i]
         yearly_sold_pens += sales_info['pen_sold'][i]
-        #print(type(monthly_stolen['date'][index_stolen]), type(sales_info['date'][i]))
         if pd.to_datetime(monthly_stolen['date'][index_stolen]) == sales_info['date'][i]:
             yearly_stolen_apples += monthly_stolen['apple'][index_stolen]
             yearly_stolen_pens += monthly_stolen['pen'][index_stolen]
@@ -111,8 +101,10 @@ def yearly(store_name, sales_info):
         index_stolen += 1
     yearly_stats.loc[index_yearly] = [sales_info['date'][i].strftime("%Y"), "MS", yearly_sold_apples, yearly_stolen_apples, yearly_sold_pens, yearly_stolen_pens]
     yearly_stats.set_index('year', inplace = True)
+    print("> Yearly stats are ready")
     print(yearly_stats)
     yearly_stats.to_csv(out_path + store_name + "-yearly.csv")
+    print("> Saved yearly stats")
 
 #M A I N
 source_path = "ref/out/input/"
@@ -122,6 +114,6 @@ inventory = "-inventory.csv"
 sell = "-sell.csv"
 supply = "-supply.csv"
 
-goods_sold = daily(names[7])
-stolen(names[7])
-yearly(names[7], goods_sold)
+goods_sold = daily(names[4])
+stolen(names[4])
+yearly(names[4], goods_sold)
