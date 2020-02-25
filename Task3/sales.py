@@ -72,7 +72,7 @@ def stolen(store_name):
             index += 1
             monthly_stolen.loc[index] = [monthly_stolen['date'][index - 1], 0, 0]
         #print("Step ", i)
-    print(type(monthly_stolen['date'][0])) #в этом дефе пофиксить трабл с тайпами у датыы
+    #print(type(monthly_stolen['date'][0])) #в этом дефе пофиксить трабл с тайпами у датыы
     monthly_stolen.drop([index], inplace = True)
     monthly_stolen.set_index('date', inplace = True)
     print(monthly_stolen)
@@ -85,18 +85,18 @@ def yearly(store_name, sales_info):
     index_yearly = index_stolen = 0
     yearly_sold_apples = yearly_sold_pens = yearly_stolen_apples = yearly_stolen_pens = 0
     date_point = sales_info['date'][0]
-    print(monthly_stolen)
+    #print(monthly_stolen)
+    #pd.to_datetime(monthly_stolen['date'])
 
     yearly_stats = pd.DataFrame({'year' : [dt.date(2006, 1, 1).strftime("%Y")], 'state' : ["MS"], 'apple_sold' : [0], 'apple_stolen' : [0], 'pen_sold' : [0], 'pen_stolen' : [0]})
     for i in range(len(sales_info['date']) - 1):
         yearly_sold_apples += sales_info['apple_sold'][i]
         yearly_sold_pens += sales_info['pen_sold'][i]
         #print(type(monthly_stolen['date'][index_stolen]), type(sales_info['date'][i]))
-        if monthly_stolen['date'][index_stolen] == sales_info['date'][i]:
+        if pd.to_datetime(monthly_stolen['date'][index_stolen]) == sales_info['date'][i]:
             yearly_stolen_apples += monthly_stolen['apple'][index_stolen]
             yearly_stolen_pens += monthly_stolen['pen'][index_stolen]
             index_stolen += 1
-            print("J O P A")
         year_check = date_point.year % 4
         if sales_info['date'][i + 1].year != sales_info['date'][i].year:
             yearly_stats.loc[index_yearly] = [sales_info['date'][i].strftime("%Y"), "MS", yearly_sold_apples, yearly_stolen_apples, yearly_sold_pens, yearly_stolen_pens]
@@ -110,7 +110,9 @@ def yearly(store_name, sales_info):
         yearly_stolen_pens += monthly_stolen['pen'][index_stolen]
         index_stolen += 1
     yearly_stats.loc[index_yearly] = [sales_info['date'][i].strftime("%Y"), "MS", yearly_sold_apples, yearly_stolen_apples, yearly_sold_pens, yearly_stolen_pens]
+    yearly_stats.set_index('year', inplace = True)
     print(yearly_stats)
+    yearly_stats.to_csv(out_path + store_name + "-yearly.csv")
 
 #M A I N
 source_path = "ref/out/input/"
