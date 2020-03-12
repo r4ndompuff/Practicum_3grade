@@ -60,7 +60,7 @@ def stolen(store_name):
     total_stolen_apple = total_stolen_pen = 0
     for i in range(len(daily_stats['date'])):
         if (index < len(monthly_inventory['date'])) and (daily_stats['date'][i] == monthly_inventory['date'][index]):
-            monthly_stolen.loc[index, 'date'] = daily_stats['date'][i] #трабл где-то дальше
+            monthly_stolen.loc[index, 'date'] = daily_stats['date'][i]
             monthly_stolen.loc[index, 'apple'] = daily_stats['apple'][i] - monthly_inventory['apple'][index] - total_stolen_apple
             monthly_stolen.loc[index, 'pen'] = daily_stats['pen'][i] - monthly_inventory['pen'][index] - total_stolen_pen
             total_stolen_apple = total_stolen_apple + monthly_stolen['apple'][index]
@@ -114,6 +114,7 @@ inventory = "-inventory.csv"
 sell = "-sell.csv"
 supply = "-supply.csv"
 
-goods_sold = daily(names[4])
-stolen(names[4])
-yearly(names[4], goods_sold)
+for i in range(len(names)):
+    goods_sold = daily(names[4])
+    stolen(names[4])
+    yearly(names[4], goods_sold)
