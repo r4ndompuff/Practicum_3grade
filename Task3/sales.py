@@ -115,6 +115,6 @@ sell = "-sell.csv"
 supply = "-supply.csv"
 
 for i in range(len(names)):
-    goods_sold = daily(names[4])
-    stolen(names[4])
-    yearly(names[4], goods_sold)
+    goods_sold = daily(names[i])
+    stolen(names[i])
+    yearly(names[i], goods_sold)
