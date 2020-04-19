@@ -31,7 +31,6 @@ class OneStepLinReg():
         plt.title('Our own regressor', fontsize = 'xx-large')
         plt.show()
 
-
 def monthly_produced(df):
     for i in range(len(df["UnsId"])):
         if df['Supplier'][i] == sup1:
@@ -42,8 +41,8 @@ def monthly_produced(df):
     print("W monthly production:", W)
     fir = plt.figure()
     colors = ['red','blue']
-    p1 = plt.bar(months, H, width=0.2, align='edge', color='r')
-    p2 = plt.bar(months, W, width=-0.2, align='edge', color='b')
+    p1 = plt.bar(months, H, width=0.2, align='edge', color='orange')
+    p2 = plt.bar(months, W, width=-0.2, align='edge', color='purple')
     plt.legend((p1, p2), ('harpy.co', 'westeros.inc'), loc=4, frameon = None )
     plt.grid(linewidth = 1)
     plt.title('Produced in month', fontsize = 'xx-large')
@@ -65,8 +64,8 @@ def monthly_broken_metrics(df):
     W_metrics = 100000 / W_metrics
     fir = plt.figure()
     colors = ['red','blue']
-    p1 = plt.bar(months, H_broken, width=0.2, align='edge', color='r')
-    p2 = plt.bar(months, W_broken, width=-0.2, align='edge', color='b')
+    p1 = plt.bar(months, H_broken, width=0.2, align='edge', color='orange')
+    p2 = plt.bar(months, W_broken, width=-0.2, align='edge', color='purple')
     plt.legend((p1, p2), ('harpy.co', 'westeros.inc'), loc=4, frameon = None )
     plt.grid(linewidth = 1)
     plt.title('Broken in month', fontsize = 'xx-large')
@@ -80,8 +79,8 @@ def monthly_stats():
     W_s = W_broken / W
     fir = plt.figure()
     colors = ['red','blue']
-    p1 = plt.bar(months, H_s, width=0.2, align='edge', color='r')
-    p2 = plt.bar(months, W_s, width=-0.2, align='edge', color='b')
+    p1 = plt.bar(months, H_s, width=0.2, align='edge', color='orange')
+    p2 = plt.bar(months, W_s, width=-0.2, align='edge', color='purple')
     plt.legend((p1, p2), ('harpy.co', 'westeros.inc'), loc=4, frameon = None )
     plt.grid(linewidth = 1)
     plt.title('% of broken in month', fontsize = 'xx-large')
