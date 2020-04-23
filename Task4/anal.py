@@ -54,7 +54,7 @@ def monthly_broken_metrics(df):
     for i in range(len(df["UnsId"])):
         if df['Supplier'][i] == sup1:
             H_broken[int(df['ProductDate'][i]) - 1] += int(float(df['Defects'][i]))
-            H_metrics = H_metrics + int(float(df['Produced'][i])) / int(df['ReportDate'][i])
+            H_metrics = H_metrics + int(float(df['Produced'][i])) / (int(df['ReportDate'][i]) - int(df['ProductDate'][i]) + 1)
         if df['Supplier'][i] == sup2:
             W_broken[int(df['ProductDate'][i]) - 1] += int(float(df['Defects'][i]))
             W_metrics += int(float(df['Produced'][i])) / int(df['ReportDate'][i])
